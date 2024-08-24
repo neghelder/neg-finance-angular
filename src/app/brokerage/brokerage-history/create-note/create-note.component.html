@@ -1,0 +1,69 @@
+<h1 mat-dialog-title>Adicionar nota</h1>
+<div mat-dialog-content [formGroup]="form">
+  <mat-grid-list cols="3" rowHeight="5rem">
+    <mat-grid-tile>
+      <mat-form-field>
+        <mat-label>Escolha a data</mat-label>
+        <input matInput [formControl]="dateControl" required>
+        @if (dateControl.invalid) {
+        <mat-error>{{getErrorMessage(dateControl)}}</mat-error>
+        }
+        <!-- <input matInput [matDatepicker]="picker" [formControl]="dateControl">
+        <mat-hint>DD/MM/YYYY</mat-hint>
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker> -->
+      </mat-form-field>
+    </mat-grid-tile>
+    <mat-grid-tile>
+      <mat-form-field>
+        <mat-label>Digite o nome da ação</mat-label>
+        <input matInput [formControl]="tickerControl">
+        @if (tickerControl.invalid) {
+        <mat-error>{{getErrorMessage(tickerControl)}}</mat-error>
+        }
+      </mat-form-field>
+    </mat-grid-tile>
+    <mat-grid-tile>
+      <mat-form-field>
+        <mat-label>Operação</mat-label>
+        <mat-select [value]="data.note.op" [formControl]="opControl">
+          <mat-option value="C">Compra</mat-option>
+          <mat-option value="V">Venda</mat-option>
+          <mat-option value="D">Desdobramento</mat-option>
+          <mat-option value="A">Agrupamento</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </mat-grid-tile>
+    <mat-grid-tile>
+      <mat-form-field>
+        <mat-label>Quantity</mat-label>
+        <input matInput type="number" [formControl]="quantityControl">
+        @if (quantityControl.invalid) {
+        <mat-error>{{getErrorMessage(quantityControl)}}</mat-error>
+        }
+      </mat-form-field>
+    </mat-grid-tile>
+    <mat-grid-tile>
+      <mat-form-field>
+        <mat-label>Price</mat-label>
+        <input matInput [formControl]="priceControl" required>
+        @if (priceControl.invalid) {
+        <mat-error>{{getErrorMessage(priceControl)}}</mat-error>
+        }
+      </mat-form-field>
+    </mat-grid-tile>
+    <mat-grid-tile>
+      <mat-form-field>
+        <mat-label>Fees</mat-label>
+        <input matInput [formControl]="feesControl">
+        @if (feesControl.invalid) {
+        <mat-error>{{getErrorMessage(feesControl)}}</mat-error>
+        }
+      </mat-form-field>
+    </mat-grid-tile>
+  </mat-grid-list>
+</div>
+<div mat-dialog-actions class="actions-container">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-button cdkFocusInitial class="confirm-btn" (click)="onSave()">Confirm</button>
+</div>

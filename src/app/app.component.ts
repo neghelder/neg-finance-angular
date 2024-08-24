@@ -1,14 +1,30 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
+import { AuthService } from './auth/auth.service';
+import { HeaderComponent } from './layout/header/header.component';
+import { FooterComponent } from './layout/footer/footer.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet],
+  imports: [
+    CommonModule, 
+    RouterOutlet, 
+    HeaderComponent,
+    FooterComponent
+  ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.sass'
+  styleUrl: './app.component.scss'
 })
-export class AppComponent {
-  title = 'negFinance';
+
+export class AppComponent implements OnInit {
+
+  constructor(private auth: AuthService, private router: Router) {}
+  
+  ngOnInit(): void {
+    if(!this.auth.hasCurrentSession()) {
+      this.router.navigateByUrl('/default');
+    }
+  }
 }

@@ -1,0 +1,8 @@
+<mat-drawer-container class="example-container">
+  <mat-drawer #drawer [mode]="'side'" opened>
+    <app-side-bar></app-side-bar>
+  </mat-drawer>
+  <mat-drawer-content [style]="'height: 450px'">
+    <router-outlet></router-outlet>
+  </mat-drawer-content>
+</mat-drawer-container>

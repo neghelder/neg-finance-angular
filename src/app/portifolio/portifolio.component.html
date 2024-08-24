@@ -1,0 +1,26 @@
+<mat-tab-group>
+  <mat-tab [label]="port.name.replaceAll('_', ' ')" *ngFor="let port of portifolio$ | async">
+    <app-widget-grid [colDefs]="colDefs" [data]="port.assets"></app-widget-grid>
+    <!-- <mat-divider [style]=""></mat-divider> -->
+    <div class="filter-container">
+      <label>Show By:</label>
+      <mat-radio-group [(ngModel)]="mode">
+        <mat-radio-button value="ByPosition">
+          Position
+        </mat-radio-button>
+        <mat-radio-button value="BySector">
+          Sector
+        </mat-radio-button>
+        <mat-radio-button value="BySubSector">
+          Sub-Sector
+        </mat-radio-button>
+      </mat-radio-group>
+    </div>
+
+    <app-widget-pie *ngIf="mode === 'ByPosition'"
+      [data]="pieChartData.get(port.name)?.get('ByPosition')"></app-widget-pie>
+    <app-widget-pie *ngIf="mode === 'BySector'" [data]="pieChartData.get(port.name)?.get('BySector')"></app-widget-pie>
+    <app-widget-pie *ngIf="mode === 'BySubSector'"
+      [data]="pieChartData.get(port.name)?.get('BySubSector')"></app-widget-pie>
+  </mat-tab>
+</mat-tab-group>

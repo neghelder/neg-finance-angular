@@ -1,0 +1,17 @@
+<mat-tab-group (selectedTabChange)="tabChanged($event)">
+  <mat-tab [label]="brokerage.name.replaceAll('_', ' ')" *ngFor="let brokerage of brokerageCollection$ | async">
+    <app-widget-grid [colDefs]="colDefs" [data]="brokerage.notes"
+      (rowSelected)="onRowSelected($event)"></app-widget-grid>
+  </mat-tab>
+</mat-tab-group>
+<div class="fixed-bottom-right">
+  <button *ngIf="selectedData != undefined" mat-mini-fab color="dark" (click)="onDelete()">
+    <mat-icon>delete</mat-icon>
+  </button>
+  <button *ngIf="selectedData != undefined" mat-mini-fab color="dark" (click)="onEdit()">
+    <mat-icon>edit</mat-icon>
+  </button>
+  <button mat-mini-fab color="dark" (click)="onAdd()">
+    <mat-icon>add</mat-icon>
+  </button>
+</div>
