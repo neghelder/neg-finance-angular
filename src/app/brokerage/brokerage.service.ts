@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, map, of, tap, throwError } from 'rxjs';
 import { BrokerageCollection, Note } from './brokerage';
 
 @Injectable({
@@ -8,21 +8,45 @@ import { BrokerageCollection, Note } from './brokerage';
 })
 export class BrokerageService {
 
-  private url: string = 'http://localhost:8000/brokerage?sort=1';
+  private url: string = 'http://localhost:8000/brokerage/notes?sort=1';
   private httpOptions = { headers: new HttpHeaders({ 'Content-Type': 'application/json'})};
   
-  brokerageHistory$ = this.http.get<BrokerageCollection[]>(this.url).pipe(
-    catchError(this.handleError)
-  )
+  private brokerageHistorySubject = new BehaviorSubject<BrokerageCollection[]>([]);
+  brokerageHistory$ = this.brokerageHistorySubject.asObservable();
 
-  constructor(private http: HttpClient) { }
+  // brokerageHistory$ = this.http.get<BrokerageCollection[]>(this.url).pipe(
+  //   catchError(this.handleError)
+  // )
 
-  addNote(data: any) {
-    return this.http.post('http://localhost:8000/brokerage/notes', data, this.httpOptions)
+  constructor(private http: HttpClient) { 
+    this.loadBrokerageHistory();
+  }
+
+  updateNote(data: any) {
+    return this.http.post('http://localhost:8000/brokerage/note', data, this.httpOptions)
       .pipe(
+        tap(() => this.loadBrokerageHistory()),
         catchError(this.handleError)
       );
   }
+
+  deleteNote(id: Number, collection_name: string) {
+    return this.http.delete(`http://localhost:8000/brokerage/note/${id}?collection=${collection_name}`)
+      .pipe(
+        tap(() => this.loadBrokerageHistory()),
+        catchError(this.handleError)
+      );
+  }
+
+  private loadBrokerageHistory() : void {
+    this.http.get<BrokerageCollection[]>(this.url)
+    .pipe(
+      tap(collections => console.log(collections)),
+      catchError(this.handleError)
+    )
+    .subscribe((data: BrokerageCollection[]) => this.brokerageHistorySubject.next(data));
+  }
+
   private handleError(err: HttpErrorResponse): Observable<never> {
     // in a real world app, we may send the server to some remote logging infrastructure
     // instead of just logging it to the console

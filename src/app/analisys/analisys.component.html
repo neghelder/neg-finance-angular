@@ -1,1 +1,10 @@
-<p>ANALISYS WORKS</p>
+<mat-tab-group (selectedTabChange)="tabChanged($event)">
+    <mat-tab [label]="class.Type" *ngFor="let class of investClasses">
+    </mat-tab>
+</mat-tab-group>
+<mat-tab-group>
+    <mat-tab [label]="set.name.split('_')[3]" *ngFor="let set of analysisSets$ | async">
+        <app-widget-grid [colDefs]="selectedTab.includes('SHARES') ? colDefs : colReitsDefs" [data]="set.analisys"></app-widget-grid>
+    </mat-tab>
+</mat-tab-group>
+<app-recommendations [type]="selectedTab!" [origin]="'BR'"></app-recommendations>

@@ -4,7 +4,7 @@ export interface Asset {
   cost: number,
   mean_price: number,
   price: number,
-  total_mkt_price?: number,
+  market_value?: number,
   unrealized_gain?: number,
   sector?: string,
   subsector?: string
