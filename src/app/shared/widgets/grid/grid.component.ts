@@ -4,7 +4,8 @@ import {
   ColDef, 
   RowSelectedEvent,
   GridReadyEvent,
-  SelectionChangedEvent
+  SelectionChangedEvent,
+  GridApi
 } from 'ag-grid-community'; // Column Definition Type Interface
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
@@ -21,13 +22,16 @@ export class GridComponent {
   @Input() data: any[] | undefined = [];
   @Input() colDefs: ColDef[] = [];
 
-  // @Output() gridReady = new EventEmitter();
+  @Output() gridReady = new EventEmitter();
   @Output() rowSelected = new EventEmitter();
 
   themeClass = "ag-theme-quartz";
+  
+  private gridApi: GridApi;
 
   onGridReady(event: GridReadyEvent<any>) {
-    // this.data = data;
+    this.gridApi = event.api;
+    this.gridReady.emit(event);
   }
 
   onRowSelected(event: RowSelectedEvent) {
@@ -39,6 +43,16 @@ export class GridComponent {
   onSelectionChanged(event: SelectionChangedEvent) {
     var rowCount = event.api.getSelectedNodes().length;
     console.log('selection changed, ' + rowCount + ' rows selected');
+  }
+
+  ensureRowIndexIsVisible(index: number) {
+    this.gridApi.ensureIndexVisible(index, "middle");
+    const node = this.gridApi.getDisplayedRowAtIndex(index);
+    node?.setSelected(true);
+  }
+
+  api() {
+    return this.gridApi;
   }
 
 }

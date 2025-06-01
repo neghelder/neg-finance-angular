@@ -8,6 +8,8 @@ import { PortifolioService } from './portifolio.service';
 import { ColDef } from 'ag-grid-community';
 import { AsyncPipe, CommonModule, CurrencyPipe, formatCurrency } from '@angular/common';
 import {FormsModule} from '@angular/forms';
+import { MatGridListModule } from '@angular/material/grid-list';
+import { MatCardModule } from '@angular/material/card';
 import { PortifolioResolverService } from './portifolio-resolver.service';
 import { tap } from 'rxjs';
 
@@ -23,7 +25,9 @@ import { tap } from 'rxjs';
     PieComponent,
     AsyncPipe,
     CurrencyPipe,
-    MatRadioModule
+    MatRadioModule,
+    MatGridListModule,
+    MatCardModule
   ],
   // providers: [
   //   PortifolioResolverService
@@ -45,8 +49,9 @@ export class PortifolioComponent {
     { field: 'amount', headerName: 'Quant.', width: 100 },
     { field: 'cost', headerName: 'Custo', width: 100, cellRenderer: this.customPriceRenderer },
     { field: 'mean_price', headerName: 'Preço Médio', width: 150, cellRenderer: this.customPriceRenderer },
-    { field: 'total_mkt_price', headerName: 'Preço de Mercado', width: 150, cellRenderer: this.customPriceRenderer },
+    { field: 'market_value', headerName: 'Preço de Mercado', width: 150, cellRenderer: this.customPriceRenderer },
     { field: 'unrealized_gain', headerName: 'Ganho', width: 100, cellRenderer: this.customPriceRenderer },
+    // { field: 'last_div', headerName: 'Dividendos', width: 100, cellRenderer: this.customPriceRenderer },
     { field: 'sector', headerName: 'Setor', width: 250 },
     { field: 'subsector', headerName: 'Sub-Setor', width: 250 }
   ];
@@ -62,7 +67,7 @@ export class PortifolioComponent {
         const positions = port.assets.map(asset => {
           return {
             name: asset.ticker,
-            y: asset.total_mkt_price
+            y: asset.market_value
           };
         });
         types.set('ByPosition', positions);

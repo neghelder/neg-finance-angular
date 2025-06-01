@@ -1,7 +1,7 @@
 <mat-tab-group (selectedTabChange)="tabChanged($event)">
   <mat-tab [label]="brokerage.name.replaceAll('_', ' ')" *ngFor="let brokerage of brokerageCollection$ | async">
     <app-widget-grid [colDefs]="colDefs" [data]="brokerage.notes"
-      (rowSelected)="onRowSelected($event)"></app-widget-grid>
+      (rowSelected)="onRowSelected($event)" (gridReady)="onGridReady($event)"></app-widget-grid>
   </mat-tab>
 </mat-tab-group>
 <div class="fixed-bottom-right">
@@ -15,3 +15,10 @@
     <mat-icon>add</mat-icon>
   </button>
 </div>
+<!-- <mat-form-field>
+  <mat-label>Choose a date</mat-label>
+  <input matInput [matDatepicker]="picker">
+  <mat-hint>MM/DD/YYYY</mat-hint>
+  <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+  <mat-datepicker #picker></mat-datepicker>
+</mat-form-field> -->

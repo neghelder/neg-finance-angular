@@ -8,16 +8,17 @@
         @if (dateControl.invalid) {
         <mat-error>{{getErrorMessage(dateControl)}}</mat-error>
         }
-        <!-- <input matInput [matDatepicker]="picker" [formControl]="dateControl">
-        <mat-hint>DD/MM/YYYY</mat-hint>
-        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker> -->
       </mat-form-field>
     </mat-grid-tile>
     <mat-grid-tile>
       <mat-form-field>
         <mat-label>Digite o nome da ação</mat-label>
-        <input matInput [formControl]="tickerControl">
+        <input matInput [formControl]="tickerControl" [matAutocomplete]="auto">
+        <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+          @for (option of filteredTickers | async; track option) {
+            <mat-option [value]="option">{{option}}</mat-option>
+          }
+        </mat-autocomplete>
         @if (tickerControl.invalid) {
         <mat-error>{{getErrorMessage(tickerControl)}}</mat-error>
         }
@@ -67,3 +68,10 @@
   <button mat-button (click)="onCancel()">Cancel</button>
   <button mat-button cdkFocusInitial class="confirm-btn" (click)="onSave()">Confirm</button>
 </div>
+<!-- <mat-form-field>
+  <mat-label>Choose a date</mat-label>
+  <input matInput [matDatepicker]="picker">
+  <mat-hint>MM/DD/YYYY</mat-hint>
+  <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+  <mat-datepicker #picker></mat-datepicker>
+</mat-form-field> -->

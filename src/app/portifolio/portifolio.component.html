@@ -1,5 +1,35 @@
 <mat-tab-group>
   <mat-tab [label]="port.name.replaceAll('_', ' ')" *ngFor="let port of portifolio$ | async">
+    <mat-grid-list cols="3" rowHeight="300px">
+      <mat-grid-tile>
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Total Cost</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="dashboard-card-content">{{port.metrics.cost}}</mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+      <mat-grid-tile>
+        <mat-card >
+          <mat-card-header>
+            <mat-card-title>Gains</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="dashboard-card-content">
+            <p><em>Unrealized: </em>{{port.metrics.unrealized_gain}}</p>
+            <p><em>Realized: </em>{{port.metrics.realized_gain}}</p>
+            <p><b>Total:</b>{{port.metrics.gain}}</p>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+      <mat-grid-tile *ngIf="port.metrics.last_dividends">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Last Dividends</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="dashboard-card-content">{{port.metrics.last_dividends}}</mat-card-content>
+        </mat-card>  
+      </mat-grid-tile>
+    </mat-grid-list>
     <app-widget-grid [colDefs]="colDefs" [data]="port.assets"></app-widget-grid>
     <!-- <mat-divider [style]=""></mat-divider> -->
     <div class="filter-container">
