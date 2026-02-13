@@ -3,13 +3,37 @@
   margin-bottom: 1rem;
 }
 
-// .dashboard-card {
-//   top: 15px;
-//   left: 15px;
-//   right: 15px;
-//   bottom: 15px;
-// }
+.metrics-container {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
 
-// .dashboard-card-content {
-//   text-align: center;
-// }
+.metric-card {
+  flex: 1;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.metric-card mat-card-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.metric-value {
+  font-size: 20px;
+  font-weight: bold;
+  color: #007bff; /* A nice blue color */
+}
+
+.total-gain {
+  font-weight: bold;
+  color: #28a745; /* Green for total gain */
+}
+
+p {
+  margin: 8px 0;
+  font-size: 12px;
+}
