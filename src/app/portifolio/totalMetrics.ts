@@ -1,7 +1,8 @@
 export interface TotalMetrics {
-    cost: Number,
-    unrealized_gain: Number,
-    realized_gain: Number,
-    gain: Number,
-    last_dividends: Number
+    total_value: number,
+    cost: number,
+    unrealized_gain: number,
+    realized_gain: number,
+    gain: number,
+    last_dividends: number
 }
