@@ -33,7 +33,7 @@ export class BrokerageHistoryComponent {
 
   colDefs: ColDef[] = [
     { field: 'date', headerName: 'Data', width: 115, cellRenderer: this.inputRenderer },
-    { field: 'ticker', headerName: 'Papel', width: 100, cellRenderer: this.inputRenderer },
+    { field: 'ticker', headerName: 'Papel', width: 100, cellRenderer: this.inputRenderer, filter: 'agTextColumnFilter' },
     { field: 'op', headerName: 'OP', width: 60, cellRenderer: this.inputRenderer},
     { field: 'qtd', headerName: 'Quant.', width: 80, cellRenderer: this.inputRenderer },
     { field: 'price', headerName: 'Preço', width: 80, cellRenderer: this.inputRenderer },
@@ -103,9 +103,9 @@ export class BrokerageHistoryComponent {
       if(!result || !result?.tickerControl || !result?.dateControl) {
         return;
       }
-      
+
       const data = {
-        collection: this.selectedTab?.replace(' ', '_'), 
+        collection: this.selectedTab?.replace(' ', '_'),
         id: -1,
         ticker: result.tickerControl,
         date: result.dateControl,
@@ -114,7 +114,7 @@ export class BrokerageHistoryComponent {
         price: result.priceControl,
         qtd: result.quantityControl
       }
-      
+
       this.brokerageService.updateNote(data).subscribe(res => {
         console.log('brokerage note added successfully.');
       })
@@ -126,7 +126,7 @@ export class BrokerageHistoryComponent {
   onEdit() {
     const dialogRef = this.dialog.open(CreateNoteComponent, {
       data: { title: 'Editar nota', 
-        note: this.selectedData, 
+        note: this.selectedData,
         tickerNames : this.tickerNames 
       },
       height: '50%',
@@ -138,7 +138,7 @@ export class BrokerageHistoryComponent {
         return;
       }
       const data = {
-        collection: this.selectedTab?.replace(' ', '_'), 
+        collection: this.selectedTab?.replace(' ', '_'),
         id: this.selectedData.id,
         ticker: result.tickerControl,
         date: result.dateControl,
@@ -147,7 +147,7 @@ export class BrokerageHistoryComponent {
         price: result.priceControl,
         qtd: result.quantityControl
       }
-      
+
       this.brokerageService.updateNote(data).subscribe(res => {
         console.log('brokerage note updated successfully.');
       })
@@ -182,7 +182,7 @@ export class BrokerageHistoryComponent {
     this.selectedTabIndex = event.index;
 
     this.brokerageService.brokerageHistory$.pipe(
-      map(collections => collections.filter(collection => collection.name === this.selectedTab.replace(' ', '_'))[0]?.notes.map(value => value.ticker).filter((value, index, self) => self.indexOf(value) === index)), 
+      map(collections => collections.filter(collection => collection.name === this.selectedTab.replace(' ', '_'))[0]?.notes.map(value => value.ticker).filter((value, index, self) => self.indexOf(value) === index)),
     ).subscribe(tickers => this.tickerNames = tickers);
   }
 }
