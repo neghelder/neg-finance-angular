@@ -1,13 +1,56 @@
-<mat-list>
-    <mat-list-item *ngFor="let rec of recommendations">
-      <span matListItemTitle>{{rec.ticker}}</span>
-      <span matListItemLine>x{{rec.amount}}</span>
-    </mat-list-item>
-  </mat-list>
+<div class="recommendations-container">
+  <div class="header-section">
+    <div class="title-block">
+      <h3>Buy Recommendations</h3>
+      <p>Analyze your portfolio gaps and get suggested purchases to rebalance your assets.</p>
+    </div>
+    
+    <div class="action-block">
+      <div class="input-wrapper">
+        <span class="currency-prefix">R$</span>
+        <input type="number" [(ngModel)]="budget" placeholder="Investment Amount" (keyup.enter)="getBuyRecommendations()">
+      </div>
+      <button class="btn-primary" (click)="getBuyRecommendations()" [disabled]="isLoading">
+        <span *ngIf="!isLoading">Calculate</span>
+        <span *ngIf="isLoading" class="spinner"></span>
+      </button>
+    </div>
+  </div>
 
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <app-loading-bar [loading]="true"></app-loading-bar>
+    <p>Calculating optimal asset distribution...</p>
+  </div>
 
-  <mat-form-field>
-    <mat-label>Quanto reais vai investir?</mat-label>
-    <input matInput type="number" [(ngModel)]="budget">
-  </mat-form-field>
-  <button mat-button (click)="getBuyRecommendations()">Get recommendations</button>
+  <!-- Empty State (before search) -->
+  <div class="empty-state" *ngIf="!isLoading && recommendations === undefined">
+    <div class="empty-icon">📈</div>
+    <p>Enter an amount above to see which assets to buy next based on your target allocation.</p>
+  </div>
+
+  <!-- Results State -->
+  <div class="results-grid" *ngIf="!isLoading && recommendations !== undefined && recommendations.length > 0">
+    <div class="rec-card" *ngFor="let rec of recommendations">
+      <div class="rec-ticker">{{ rec.ticker }}</div>
+      <div class="rec-details">
+        <div class="detail-item">
+          <span class="detail-label">Quantity</span>
+          <span class="detail-value highlighted">x{{ rec.amount }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Footer -->
+  <div class="summary-bar" *ngIf="!isLoading && totalSpent !== undefined && recommendations !== undefined && recommendations.length > 0">
+    <div class="summary-label">Total Estimated Cost</div>
+    <div class="summary-value">{{ totalSpent | currency:'BRL' }}</div>
+  </div>
+
+  <!-- No Results State -->
+  <div class="empty-state" *ngIf="!isLoading && recommendations !== undefined && recommendations.length === 0">
+    <div class="empty-icon">🤷</div>
+    <p>No recommendations found for this amount. Try increasing your investment budget.</p>
+  </div>
+</div>

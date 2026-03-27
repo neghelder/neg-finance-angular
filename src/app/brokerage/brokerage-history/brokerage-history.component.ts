@@ -1,9 +1,8 @@
 import { Component, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { BrokerageService } from '../brokerage.service';
 import { ColDef, GridReadyEvent, RowSelectedEvent } from 'ag-grid-community';
-import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
 import { GridComponent } from '../../shared/widgets/grid/grid.component';
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,6 +10,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { CreateNoteComponent } from './create-note/create-note.component';
 import { BrokerageCollection, Note } from '../brokerage';
 import { map, Observable, tap } from 'rxjs';
+import { AssetTypeSelectorComponent, AssetTypeOption } from '../../shared/asset-type-selector/asset-type-selector.component';
+import { LoadingBarComponent } from '../../shared/loading-bar/loading-bar.component';
 
 @Component({
   selector: 'app-brokerage-history',
@@ -18,12 +19,11 @@ import { map, Observable, tap } from 'rxjs';
   imports: [
     CommonModule,
     FormsModule,
-    MatTabsModule,
     GridComponent,
     MatButtonModule,
     MatIconModule,
-    MatIconModule,
-    AsyncPipe
+    AssetTypeSelectorComponent,
+    LoadingBarComponent
   ],
   templateUrl: './brokerage-history.component.html',
   styleUrl: './brokerage-history.component.scss'
@@ -49,16 +49,15 @@ export class BrokerageHistoryComponent {
     { field: 'sells_month', headerName: 'Vendas/Mês', width: 110, cellRenderer: this.numberRenderer }
   ];
 
+  loading: boolean = true;
+  assetTypeOptions: AssetTypeOption[] = [];
+  selectedAssetType: string = '';
+  selectedTab: string = '';
+  selectedNotes: Note[] = [];
+  tickerNames: string[];
+
   brokerageCollection$: Observable<BrokerageCollection[]>;
-  tickerNames: string[];  // New observable for ticker names
-
-  // brokerageCollection$ = this.brokerageService.brokerageHistory$;
-
-  // tickerNames$ = this.brokerageCollection$.pipe(
-  //   tap(collections => console.log(collections)), 
-  //   map(collections => collections.map(item => item.name)), // Extract ticker names
-  //   distinctUntilChanged()  // Ensures that updates are emitted only when tickers actually change
-  // );
+  allCollections: BrokerageCollection[] = [];
 
   selectedData: any = undefined;
   lastSelectedRownIndex = -1;
@@ -71,20 +70,61 @@ export class BrokerageHistoryComponent {
     qtd: 0,
     total_rat: 0
   };
-  selectedTab: string;
-  selectedTabIndex = -1;
 
   @ViewChild(GridComponent) gridComponent: GridComponent;
   @ViewChildren(GridComponent) grids!: QueryList<GridComponent>;
   private gridApi!: any;
 
   constructor(private brokerageService: BrokerageService, public dialog: MatDialog) {
-    this.brokerageCollection$ = this.brokerageService.brokerageHistory$;
+    this.brokerageCollection$ = this.brokerageService.brokerageHistory$.pipe(
+      tap(collections => {
+        this.allCollections = collections;
+        this.loading = false;
+
+        // Build selector options
+        this.assetTypeOptions = collections.map(c => ({
+          label: c.name.replaceAll('_', ' '),
+          value: c.name
+        }));
+
+        // Auto-select first if nothing selected yet
+        if (!this.selectedAssetType && collections.length > 0) {
+          this.selectedAssetType = collections[0].name;
+          this.selectedTab = collections[0].name.replaceAll('_', ' ');
+          this.selectedNotes = collections[0].notes;
+          this.tickerNames = collections[0].notes
+            .map(n => n.ticker)
+            .filter((v, i, self) => self.indexOf(v) === i);
+        } else if (this.selectedAssetType) {
+          // Refresh data for current selection (e.g. after CRUD)
+          const current = collections.find(c => c.name === this.selectedAssetType);
+          if (current) {
+            this.selectedNotes = current.notes;
+            this.tickerNames = current.notes
+              .map(n => n.ticker)
+              .filter((v, i, self) => self.indexOf(v) === i);
+          }
+        }
+      })
+    );
+  }
+
+  onAssetTypeChange(value: string): void {
+    this.selectedAssetType = value;
+    this.selectedTab = value.replaceAll('_', ' ');
+    this.selectedData = undefined;
+
+    const collection = this.allCollections.find(c => c.name === value);
+    if (collection) {
+      this.selectedNotes = collection.notes;
+      this.tickerNames = collection.notes
+        .map(n => n.ticker)
+        .filter((v, i, self) => self.indexOf(v) === i);
+    }
   }
 
   numberRenderer(params: any) {
     const value = Number(params.value);
-
     return Number.isInteger(value) ? value : value.toFixed(3);
   }
 
@@ -125,9 +165,9 @@ export class BrokerageHistoryComponent {
 
   onEdit() {
     const dialogRef = this.dialog.open(CreateNoteComponent, {
-      data: { title: 'Editar nota', 
+      data: { title: 'Editar nota',
         note: this.selectedData,
-        tickerNames : this.tickerNames 
+        tickerNames : this.tickerNames
       },
       height: '50%',
       width: '55%',
@@ -176,28 +216,4 @@ export class BrokerageHistoryComponent {
 
     event.api.ensureIndexVisible(this.lastSelectedRownIndex, "middle");
   }
-
-  tabChanged(event: MatTabChangeEvent) {
-    this.selectedTab = event.tab.textLabel;
-    this.selectedTabIndex = event.index;
-
-    this.brokerageService.brokerageHistory$.pipe(
-      map(collections => collections.filter(collection => collection.name === this.selectedTab.replace(' ', '_'))[0]?.notes.map(value => value.ticker).filter((value, index, self) => self.indexOf(value) === index)),
-    ).subscribe(tickers => this.tickerNames = tickers);
-  }
 }
-// import {Component} from '@angular/core';
-// import {MatDatepickerModule} from '@angular/material/datepicker';
-// import {MatInputModule} from '@angular/material/input';
-// import {MatFormFieldModule} from '@angular/material/form-field';
-// import {MatNativeDateModule, NativeDateAdapter} from '@angular/material/core';
-
-// /** @title Basic datepicker */
-// @Component({
-//   selector: 'datepicker-overview-example',
-//   templateUrl: 'brokerage-history.component.html',
-//   standalone: true,
-//   providers: [NativeDateAdapter],
-//   imports: [MatFormFieldModule, MatInputModule, MatDatepickerModule, MatNativeDateModule],
-// })
-// export class BrokerageHistoryComponent {}

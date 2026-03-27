@@ -1,17 +1,17 @@
-import { Component, OnInit } from '@angular/core';
-import { MatTabsModule } from '@angular/material/tabs';
+import { Component } from '@angular/core';
 import { GridComponent } from '../shared/widgets/grid/grid.component';
 import { PieComponent } from '../shared/widgets/pie/pie.component';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatRadioModule } from '@angular/material/radio';
 import { PortifolioService } from './portifolio.service';
 import { ColDef } from 'ag-grid-community';
-import { AsyncPipe, CommonModule, CurrencyPipe, formatCurrency } from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import { MatGridListModule } from '@angular/material/grid-list';
+import { AsyncPipe, CommonModule, CurrencyPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
-import { PortifolioResolverService } from './portifolio-resolver.service';
 import { tap } from 'rxjs';
+import { AssetTypeSelectorComponent, AssetTypeOption } from '../shared/asset-type-selector/asset-type-selector.component';
+import { LoadingBarComponent } from '../shared/loading-bar/loading-bar.component';
+import { Portifolio } from './portifolio';
 
 @Component({
   selector: 'app-portifolio',
@@ -19,19 +19,16 @@ import { tap } from 'rxjs';
   imports: [
     CommonModule,
     FormsModule,
-    MatTabsModule,
     MatDividerModule,
     GridComponent,
     PieComponent,
     AsyncPipe,
     CurrencyPipe,
     MatRadioModule,
-    MatGridListModule,
-    MatCardModule
+    MatCardModule,
+    AssetTypeSelectorComponent,
+    LoadingBarComponent
   ],
-  // providers: [
-  //   PortifolioResolverService
-  // ],
   templateUrl: './portifolio.component.html',
   styleUrl: './portifolio.component.scss'
 })
@@ -39,7 +36,6 @@ import { tap } from 'rxjs';
 export class PortifolioComponent {
 
   customPriceRenderer(params: any) {
-    // params.value contains the cell value
     const formattedValue = `$${params.value.toFixed(2)}`;
     return `<span style="color: ${params.value < 0 ? 'red' : 'green'}">${formattedValue}</span>`;
   }
@@ -51,62 +47,76 @@ export class PortifolioComponent {
     { field: 'mean_price', headerName: 'Preço Médio', width: 150, cellRenderer: this.customPriceRenderer },
     { field: 'market_value', headerName: 'Preço de Mercado', width: 150, cellRenderer: this.customPriceRenderer },
     { field: 'unrealized_gain', headerName: 'Ganho', width: 100, cellRenderer: this.customPriceRenderer },
-    // { field: 'last_div', headerName: 'Dividendos', width: 100, cellRenderer: this.customPriceRenderer },
     { field: 'sector', headerName: 'Setor', width: 250 },
     { field: 'subsector', headerName: 'Sub-Setor', width: 250 }
   ];
 
   mode: string = 'ByPosition';
-  pieChartData = new Map<string,Map<string, any[]>>();
+  loading: boolean = true;
+  pieChartData = new Map<string, Map<string, any[]>>();
+  assetTypeOptions: AssetTypeOption[] = [];
+  selectedAssetType: string = '';
+  selectedPortfolio: Portifolio | null = null;
+  allPortfolios: Portifolio[] = [];
 
   portifolio$ = this.portifolioService.portifolio$.pipe(
-    tap( ports => {
-      for(let port of ports) {
+    tap(ports => {
+      this.allPortfolios = ports;
+      this.loading = false;
+
+      // Build selector options from the returned data
+      this.assetTypeOptions = ports.map(p => ({
+        label: p.name.replaceAll('_', ' '),
+        value: p.name
+      }));
+
+      // Build pie chart data
+      for (let port of ports) {
         const types = new Map<string, any[]>();
-        
-        const positions = port.assets.map(asset => {
-          return {
-            name: asset.ticker,
-            y: asset.market_value
-          };
-        });
+
+        const positions = port.assets.map(asset => ({
+          name: asset.ticker,
+          y: asset.market_value
+        }));
         types.set('ByPosition', positions);
 
-
         const sectorsMap: { [key: string]: any } = {};
-        for(let asset of port.assets) {
+        for (let asset of port.assets) {
           const sector = asset.sector ? asset.sector : 'N/A';
           sectorsMap[sector] = (sectorsMap[sector] || 0) + 1;
         }
-
-        const sectors = Object.entries(sectorsMap).map(sector => {
-          return {
-            name: sector[0],
-            y: sector[1]
-          }
-        })
-
+        const sectors = Object.entries(sectorsMap).map(sector => ({
+          name: sector[0],
+          y: sector[1]
+        }));
         types.set('BySector', sectors);
 
         const subSectorsMap: { [key: string]: any } = {};
-        for(let asset of port.assets) {
+        for (let asset of port.assets) {
           const subsector = asset.subsector ? asset.subsector : 'N/A';
           subSectorsMap[subsector] = (subSectorsMap[subsector] || 0) + 1;
         }
-
-        const subsectors = Object.entries(subSectorsMap).map(sector => {
-          return {
-            name: sector[0],
-            y: sector[1]
-          }
-        })
+        const subsectors = Object.entries(subSectorsMap).map(sector => ({
+          name: sector[0],
+          y: sector[1]
+        }));
         types.set('BySubSector', subsectors);
-        
-        this.pieChartData.set(port.name, types)
+
+        this.pieChartData.set(port.name, types);
+      }
+
+      // Auto-select first option if nothing selected yet
+      if (!this.selectedAssetType && ports.length > 0) {
+        this.selectedAssetType = ports[0].name;
+        this.selectedPortfolio = ports[0];
       }
     })
-  )
+  );
 
   constructor(private portifolioService: PortifolioService) {}
 
+  onAssetTypeChange(value: string): void {
+    this.selectedAssetType = value;
+    this.selectedPortfolio = this.allPortfolios.find(p => p.name === value) || null;
+  }
 }
