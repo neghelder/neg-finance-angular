@@ -9,8 +9,8 @@ import { BrokerageCollection, Note } from './brokerage';
 export class BrokerageService {
 
   private url: string = 'http://localhost:8000/brokerage/notes?sort=1';
-  private httpOptions = { headers: new HttpHeaders({ 'Content-Type': 'application/json'})};
-  
+  private httpOptions = { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) };
+
   private brokerageHistorySubject = new BehaviorSubject<BrokerageCollection[]>([]);
   brokerageHistory$ = this.brokerageHistorySubject.asObservable();
 
@@ -18,7 +18,7 @@ export class BrokerageService {
   //   catchError(this.handleError)
   // )
 
-  constructor(private http: HttpClient) { 
+  constructor(private http: HttpClient) {
     this.loadBrokerageHistory();
   }
 
@@ -38,13 +38,13 @@ export class BrokerageService {
       );
   }
 
-  private loadBrokerageHistory() : void {
+  private loadBrokerageHistory(): void {
     this.http.get<BrokerageCollection[]>(this.url)
-    .pipe(
-      tap(collections => console.log(collections)),
-      catchError(this.handleError)
-    )
-    .subscribe((data: BrokerageCollection[]) => this.brokerageHistorySubject.next(data));
+      .pipe(
+        // tap(collections => console.log(collections)),
+        catchError(this.handleError)
+      )
+      .subscribe((data: BrokerageCollection[]) => this.brokerageHistorySubject.next(data));
   }
 
   private handleError(err: HttpErrorResponse): Observable<never> {

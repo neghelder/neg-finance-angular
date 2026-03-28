@@ -135,8 +135,8 @@ export class BrokerageHistoryComponent {
   onAdd() {
     const dialogRef = this.dialog.open(CreateNoteComponent, {
       data: { note: this.note, tickerNames : this.tickerNames},
-      height: '50%',
-      width: '55%'
+      width: '650px',
+      maxWidth: '95vw'
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -165,12 +165,12 @@ export class BrokerageHistoryComponent {
 
   onEdit() {
     const dialogRef = this.dialog.open(CreateNoteComponent, {
-      data: { title: 'Editar nota',
+      data: { title: 'Edit note',
         note: this.selectedData,
         tickerNames : this.tickerNames
       },
-      height: '50%',
-      width: '55%',
+      width: '650px',
+      maxWidth: '95vw'
     });
 
     dialogRef.afterClosed().subscribe(result => {

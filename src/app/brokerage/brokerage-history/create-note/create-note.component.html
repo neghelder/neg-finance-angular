@@ -1,77 +1,93 @@
-<h1 mat-dialog-title>Adicionar nota</h1>
-<div mat-dialog-content [formGroup]="form">
-  <mat-grid-list cols="3" rowHeight="5rem">
-    <mat-grid-tile>
-      <mat-form-field>
-        <mat-label>Escolha a data</mat-label>
-        <input matInput [formControl]="dateControl" required>
-        @if (dateControl.invalid) {
-        <mat-error>{{getErrorMessage(dateControl)}}</mat-error>
-        }
-      </mat-form-field>
-    </mat-grid-tile>
-    <mat-grid-tile>
-      <mat-form-field>
-        <mat-label>Digite o nome da ação</mat-label>
-        <input matInput [formControl]="tickerControl" [matAutocomplete]="auto">
+<div class="dialog-container">
+  <!-- Header Section -->
+  <div class="dialog-header">
+    <div>
+      <h2 class="dialog-title">Add Note</h2>
+      <p class="dialog-subtitle">Register a new operation in your investment portfolio.</p>
+    </div>
+    <button class="close-btn" type="button" (click)="onCancel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+  
+  <form [formGroup]="form" class="form-content">
+    <div class="form-grid">
+      <!-- Date -->
+      <div class="input-group">
+        <label><mat-icon>calendar_today</mat-icon> Choose date</label>
+        <div class="input-with-action">
+          <input type="text" [formControl]="dateControl" [matDatepicker]="picker" class="form-input" placeholder="DD/MM/YYYY">
+          <button type="button" class="input-action-btn" (click)="picker.open()">
+             <mat-icon>event</mat-icon>
+          </button>
+          <mat-datepicker #picker></mat-datepicker>
+        </div>
+      </div>
+      
+      <!-- Asset -->
+      <div class="input-group">
+        <label><mat-icon>monitoring</mat-icon> Asset name</label>
+        <input type="text" [formControl]="tickerControl" [matAutocomplete]="auto" class="form-input has-autocomplete" placeholder="Ex: PETR4">
         <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
           @for (option of filteredTickers | async; track option) {
             <mat-option [value]="option">{{option}}</mat-option>
           }
         </mat-autocomplete>
-        @if (tickerControl.invalid) {
-        <mat-error>{{getErrorMessage(tickerControl)}}</mat-error>
-        }
-      </mat-form-field>
-    </mat-grid-tile>
-    <mat-grid-tile>
-      <mat-form-field>
-        <mat-label>Operação</mat-label>
-        <mat-select [value]="data.note.op" [formControl]="opControl">
-          <mat-option value="C">Compra</mat-option>
-          <mat-option value="V">Venda</mat-option>
-          <mat-option value="D">Desdobramento</mat-option>
-          <mat-option value="A">Agrupamento</mat-option>
-        </mat-select>
-      </mat-form-field>
-    </mat-grid-tile>
-    <mat-grid-tile>
-      <mat-form-field>
-        <mat-label>Quantity</mat-label>
-        <input matInput type="number" [formControl]="quantityControl">
-        @if (quantityControl.invalid) {
-        <mat-error>{{getErrorMessage(quantityControl)}}</mat-error>
-        }
-      </mat-form-field>
-    </mat-grid-tile>
-    <mat-grid-tile>
-      <mat-form-field>
-        <mat-label>Price</mat-label>
-        <input matInput [formControl]="priceControl" required>
-        @if (priceControl.invalid) {
-        <mat-error>{{getErrorMessage(priceControl)}}</mat-error>
-        }
-      </mat-form-field>
-    </mat-grid-tile>
-    <mat-grid-tile>
-      <mat-form-field>
-        <mat-label>Fees</mat-label>
-        <input matInput [formControl]="feesControl">
-        @if (feesControl.invalid) {
-        <mat-error>{{getErrorMessage(feesControl)}}</mat-error>
-        }
-      </mat-form-field>
-    </mat-grid-tile>
-  </mat-grid-list>
+      </div>
+      
+      <!-- Operation -->
+      <div class="input-group">
+        <label><mat-icon>swap_horiz</mat-icon> Operation</label>
+        <div class="select-wrapper">
+          <select [formControl]="opControl" class="form-input">
+            <option value="C">Buy</option>
+            <option value="V">Sell</option>
+            <option value="D">Stock Split</option>
+            <option value="A">Reverse Split</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Quantity -->
+      <div class="input-group">
+        <label><mat-icon>layers</mat-icon> Quantity</label>
+        <input type="number" [formControl]="quantityControl" class="form-input" placeholder="0">
+      </div>
+
+      <!-- Price -->
+      <div class="input-group">
+        <label><mat-icon>payments</mat-icon> Price</label>
+        <div class="input-with-prefix">
+          <span class="prefix">R$</span>
+          <input type="number" step="0.01" [formControl]="priceControl" class="form-input has-prefix" placeholder="0.00">
+        </div>
+      </div>
+
+      <!-- Fees -->
+      <div class="input-group">
+        <label><mat-icon>receipt_long</mat-icon> Fees</label>
+        <div class="input-with-prefix">
+          <span class="prefix">R$</span>
+          <input type="number" step="0.01" [formControl]="feesControl" class="form-input has-prefix" placeholder="0.00">
+        </div>
+      </div>
+    </div>
+
+    <!-- Editorial Box -->
+    <div class="editorial-box">
+      <div class="icon-circle">
+        <mat-icon>info</mat-icon>
+      </div>
+      <p class="editorial-text">
+        The information filled above directly impacts your average price and the historical performance of your portfolio. Please review the values before confirming.
+      </p>
+    </div>
+  </form>
+
+  <div class="dialog-footer">
+    <button type="button" class="btn-cancel" (click)="onCancel()">Cancel</button>
+    <button type="button" class="btn-confirm" (click)="onSave()" [disabled]="form.invalid">
+      Confirm <mat-icon>check_circle</mat-icon>
+    </button>
+  </div>
 </div>
-<div mat-dialog-actions class="actions-container">
-  <button mat-button (click)="onCancel()">Cancel</button>
-  <button mat-button cdkFocusInitial class="confirm-btn" (click)="onSave()">Confirm</button>
-</div>
-<!-- <mat-form-field>
-  <mat-label>Choose a date</mat-label>
-  <input matInput [matDatepicker]="picker">
-  <mat-hint>MM/DD/YYYY</mat-hint>
-  <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-  <mat-datepicker #picker></mat-datepicker>
-</mat-form-field> -->

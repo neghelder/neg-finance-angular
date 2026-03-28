@@ -1,13 +1,305 @@
-.confirm-btn {
-  margin-left: 0.5rem;
-}
+$primary: #000666;
+$primary-container: #1a237e;
+$surface-container-lowest: #ffffff;
+$surface-container-highest: #e0e3e6;
+$outline: #767683;
+$secondary: #4c616c;
+$on-surface: #191c1e;
+$on-surface-variant: #454652;
 
-.actions-container {
+// The material dialog container has its own padding we want to override if possible,
+// but since we can't style host directly without ::ng-deep, we'll just style our container richly.
+.dialog-container {
   display: flex;
-  direction: row;
-  justify-content: end;
+  flex-direction: column;
+  background-color: $surface-container-lowest;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+  color: $on-surface;
 }
 
-h1 {
-  text-align: center;
+.dialog-header {
+  padding: 32px 32px 16px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  .dialog-title {
+    font-family: 'Manrope', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: $primary;
+    letter-spacing: -0.025em;
+    margin: 0;
+  }
+
+  .dialog-subtitle {
+    font-size: 14px;
+    color: $secondary;
+    margin-top: 4px;
+    margin-bottom: 0;
+  }
+
+  .close-btn {
+    background: transparent;
+    border: none;
+    padding: 8px;
+    border-radius: 50%;
+    color: $outline;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+
+    &:hover {
+      color: $primary;
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+  }
+}
+
+.form-content {
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px 32px;
+  
+  @media (min-width: 640px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $secondary;
+    display: flex;
+    align-items: center;
+
+    mat-icon {
+      font-size: 16px;
+      height: 16px;
+      width: 16px;
+      margin-right: 6px;
+    }
+  }
+}
+
+.form-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  background-color: $surface-container-highest;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  color: $on-surface;
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+
+  &::placeholder {
+    color: rgba($outline, 0.6);
+  }
+
+  &:focus {
+    background-color: $surface-container-lowest;
+    border-color: rgba($primary, 0.2);
+    box-shadow: 0 0 0 2px rgba($primary, 0.2);
+  }
+}
+
+.select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  
+  select {
+    appearance: none;
+    cursor: pointer;
+  }
+
+  &::after {
+    content: "expand_more";
+    font-family: "Material Icons";
+    position: absolute;
+    right: 16px;
+    pointer-events: none;
+    color: $on-surface-variant;
+  }
+}
+
+.input-with-prefix, .input-with-action {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .prefix {
+    position: absolute;
+    left: 16px;
+    font-weight: 600;
+    color: $on-surface-variant;
+    pointer-events: none;
+  }
+
+  .has-prefix {
+    padding-left: 48px;
+  }
+
+  .input-action-btn {
+    position: absolute;
+    right: 8px;
+    background: transparent;
+    border: none;
+    color: $on-surface-variant;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+
+    &:hover {
+      background-color: rgba($primary, 0.05);
+      color: $primary;
+    }
+
+    mat-icon {
+      font-size: 20px;
+    }
+  }
+}
+
+.editorial-box {
+  margin-top: 32px;
+  padding: 16px;
+  background-color: rgba($primary, 0.05);
+  border: 1px solid rgba($primary, 0.1);
+  border-radius: 12px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+
+  .icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba($primary, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    mat-icon {
+      color: $primary;
+      font-size: 20px;
+      height: 20px;
+      width: 20px;
+    }
+  }
+
+  .editorial-text {
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.6;
+    color: #354a53; // on-secondary-fixed-variant
+    margin: 0;
+  }
+}
+
+.dialog-footer {
+  padding: 24px 32px;
+  background-color: rgba(#f2f4f7, 0.3); // surface-container-low / 30%
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+}
+
+.btn-cancel {
+  background: transparent;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: $secondary;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: $surface-container-highest;
+  }
+}
+
+.btn-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(to bottom right, $primary, $primary-container);
+  border: none;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 4px 14px 0 rgba($primary, 0.2);
+  transition: all 0.2s;
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+  }
+
+  &:hover:not(:disabled) {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba($primary, 0.25);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: $secondary;
+    box-shadow: none;
+  }
+}
+
+// Override angular material autocomplete styles to match
+::ng-deep .mat-mdc-autocomplete-panel {
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid $surface-container-highest;
+  
+  .mat-mdc-option {
+    font-family: 'Inter', sans-serif;
+    color: $on-surface;
+    
+    &:hover, &.mat-mdc-option-active {
+      background-color: rgba($primary, 0.05) !important;
+    }
+  }
 }
