@@ -88,9 +88,11 @@ export class AnalisysComponent implements OnInit {
   ngOnInit(): void {
     this.analysisSets$ = this.selectedAssetType$.pipe(
       tap(type => {
-        this.selectedTab = type;
-        this.loading = true;
-        this.currentColDefs = type === 'SHARES' ? this.colDefs : this.colReitsDefs;
+        setTimeout(() => {
+          this.selectedTab = type;
+          this.loading = true;
+          this.currentColDefs = type === 'SHARES' ? this.colDefs : this.colReitsDefs;
+        });
       }),
       switchMap(type => {
         if (type === 'SHARES') {
@@ -100,18 +102,20 @@ export class AnalisysComponent implements OnInit {
         }
       }),
       tap(sets => {
-        this.loading = false;
-        this.analysisSets = sets;
+        setTimeout(() => {
+          this.loading = false;
+          this.analysisSets = sets;
 
-        // Build segmented nav labels from set names
-        this.setLabels = sets.map(s => {
-          const parts = s.name.split('_');
-          return parts.length > 3 ? parts.slice(3).join(' ') : s.name;
+          // Build segmented nav labels from set names
+          this.setLabels = sets.map(s => {
+            const parts = s.name.split('_');
+            return parts.length > 3 ? parts.slice(3).join(' ') : s.name;
+          });
+
+          // Auto-select first set
+          this.selectedSetIndex = 0;
+          this.selectedSetData = sets.length > 0 ? sets[0].analisys : [];
         });
-
-        // Auto-select first set
-        this.selectedSetIndex = 0;
-        this.selectedSetData = sets.length > 0 ? sets[0].analisys : [];
       })
     );
   }

@@ -61,55 +61,57 @@ export class PortifolioComponent {
 
   portifolio$ = this.portifolioService.portifolio$.pipe(
     tap(ports => {
-      this.allPortfolios = ports;
-      this.loading = false;
+      setTimeout(() => {
+        this.allPortfolios = ports;
+        this.loading = false;
 
-      // Build selector options from the returned data
-      this.assetTypeOptions = ports.map(p => ({
-        label: p.name.replaceAll('_', ' '),
-        value: p.name
-      }));
-
-      // Build pie chart data
-      for (let port of ports) {
-        const types = new Map<string, any[]>();
-
-        const positions = port.assets.map(asset => ({
-          name: asset.ticker,
-          y: asset.market_value
+        // Build selector options from the returned data
+        this.assetTypeOptions = ports.map(p => ({
+          label: p.name.replaceAll('_', ' '),
+          value: p.name
         }));
-        types.set('ByPosition', positions);
 
-        const sectorsMap: { [key: string]: any } = {};
-        for (let asset of port.assets) {
-          const sector = asset.sector ? asset.sector : 'N/A';
-          sectorsMap[sector] = (sectorsMap[sector] || 0) + 1;
+        // Build pie chart data
+        for (let port of ports) {
+          const types = new Map<string, any[]>();
+
+          const positions = port.assets.map(asset => ({
+            name: asset.ticker,
+            y: asset.market_value
+          }));
+          types.set('ByPosition', positions);
+
+          const sectorsMap: { [key: string]: any } = {};
+          for (let asset of port.assets) {
+            const sector = asset.sector ? asset.sector : 'N/A';
+            sectorsMap[sector] = (sectorsMap[sector] || 0) + 1;
+          }
+          const sectors = Object.entries(sectorsMap).map(sector => ({
+            name: sector[0],
+            y: sector[1]
+          }));
+          types.set('BySector', sectors);
+
+          const subSectorsMap: { [key: string]: any } = {};
+          for (let asset of port.assets) {
+            const subsector = asset.subsector ? asset.subsector : 'N/A';
+            subSectorsMap[subsector] = (subSectorsMap[subsector] || 0) + 1;
+          }
+          const subsectors = Object.entries(subSectorsMap).map(sector => ({
+            name: sector[0],
+            y: sector[1]
+          }));
+          types.set('BySubSector', subsectors);
+
+          this.pieChartData.set(port.name, types);
         }
-        const sectors = Object.entries(sectorsMap).map(sector => ({
-          name: sector[0],
-          y: sector[1]
-        }));
-        types.set('BySector', sectors);
 
-        const subSectorsMap: { [key: string]: any } = {};
-        for (let asset of port.assets) {
-          const subsector = asset.subsector ? asset.subsector : 'N/A';
-          subSectorsMap[subsector] = (subSectorsMap[subsector] || 0) + 1;
+        // Auto-select first option if nothing selected yet
+        if (!this.selectedAssetType && ports.length > 0) {
+          this.selectedAssetType = ports[0].name;
+          this.selectedPortfolio = ports[0];
         }
-        const subsectors = Object.entries(subSectorsMap).map(sector => ({
-          name: sector[0],
-          y: sector[1]
-        }));
-        types.set('BySubSector', subsectors);
-
-        this.pieChartData.set(port.name, types);
-      }
-
-      // Auto-select first option if nothing selected yet
-      if (!this.selectedAssetType && ports.length > 0) {
-        this.selectedAssetType = ports[0].name;
-        this.selectedPortfolio = ports[0];
-      }
+      });
     })
   );
 

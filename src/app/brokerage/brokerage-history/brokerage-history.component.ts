@@ -78,33 +78,35 @@ export class BrokerageHistoryComponent {
   constructor(private brokerageService: BrokerageService, public dialog: MatDialog) {
     this.brokerageCollection$ = this.brokerageService.brokerageHistory$.pipe(
       tap(collections => {
-        this.allCollections = collections;
-        this.loading = false;
+        setTimeout(() => {
+          this.allCollections = collections;
+          this.loading = false;
 
-        // Build selector options
-        this.assetTypeOptions = collections.map(c => ({
-          label: c.name.replaceAll('_', ' '),
-          value: c.name
-        }));
+          // Build selector options
+          this.assetTypeOptions = collections.map(c => ({
+            label: c.name.replaceAll('_', ' '),
+            value: c.name
+          }));
 
-        // Auto-select first if nothing selected yet
-        if (!this.selectedAssetType && collections.length > 0) {
-          this.selectedAssetType = collections[0].name;
-          this.selectedTab = collections[0].name.replaceAll('_', ' ');
-          this.selectedNotes = collections[0].notes;
-          this.tickerNames = collections[0].notes
-            .map(n => n.ticker)
-            .filter((v, i, self) => self.indexOf(v) === i);
-        } else if (this.selectedAssetType) {
-          // Refresh data for current selection (e.g. after CRUD)
-          const current = collections.find(c => c.name === this.selectedAssetType);
-          if (current) {
-            this.selectedNotes = current.notes;
-            this.tickerNames = current.notes
+          // Auto-select first if nothing selected yet
+          if (!this.selectedAssetType && collections.length > 0) {
+            this.selectedAssetType = collections[0].name;
+            this.selectedTab = collections[0].name.replaceAll('_', ' ');
+            this.selectedNotes = collections[0].notes;
+            this.tickerNames = collections[0].notes
               .map(n => n.ticker)
               .filter((v, i, self) => self.indexOf(v) === i);
+          } else if (this.selectedAssetType) {
+            // Refresh data for current selection (e.g. after CRUD)
+            const current = collections.find(c => c.name === this.selectedAssetType);
+            if (current) {
+              this.selectedNotes = current.notes;
+              this.tickerNames = current.notes
+                .map(n => n.ticker)
+                .filter((v, i, self) => self.indexOf(v) === i);
+            }
           }
-        }
+        });
       })
     );
   }
