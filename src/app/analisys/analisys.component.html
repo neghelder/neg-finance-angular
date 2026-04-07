@@ -1,10 +1,35 @@
-<mat-tab-group (selectedTabChange)="tabChanged($event)">
-    <mat-tab [label]="class.Type" *ngFor="let class of investClasses">
-    </mat-tab>
-</mat-tab-group>
-<mat-tab-group>
-    <mat-tab [label]="set.name.split('_')[3]" *ngFor="let set of analysisSets$ | async">
-        <app-widget-grid [colDefs]="selectedTab.includes('SHARES') ? colDefs : colReitsDefs" [data]="set.analisys"></app-widget-grid>
-    </mat-tab>
-</mat-tab-group>
-<app-recommendations [type]="selectedTab!" [origin]="'BR'"></app-recommendations>
+<div class="content-container">
+  <div class="controls-row">
+    <app-asset-type-selector
+      [options]="assetTypeOptions"
+      [selectedValue]="selectedTab"
+      (selectionChange)="onAssetTypeChange($event)">
+    </app-asset-type-selector>
+
+    <div class="set-nav" *ngIf="setLabels.length > 0">
+      <button
+        *ngFor="let label of setLabels; let i = index"
+        class="set-nav-btn"
+        [class.active]="i === selectedSetIndex"
+        (click)="onSetSelected(i)">
+        {{ label }}
+      </button>
+    </div>
+  </div>
+
+  <app-loading-bar [loading]="loading"></app-loading-bar>
+
+  <ng-container *ngIf="analysisSets$ | async">
+    <div class="grid-wrapper">
+      <app-widget-grid
+        *ngIf="selectedSetData.length > 0"
+        [colDefs]="currentColDefs"
+        [data]="selectedSetData">
+      </app-widget-grid>
+    </div>
+  </ng-container>
+
+  <div class="recommendations-wrapper">
+    <app-recommendations [type]="selectedTab!" [origin]="'BR'"></app-recommendations>
+  </div>
+</div>

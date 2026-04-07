@@ -1,53 +1,121 @@
-<mat-tab-group>
-  <mat-tab [label]="port.name.replaceAll('_', ' ')" *ngFor="let port of portifolio$ | async">
+<div class="content-container">
+  <!-- Invisible subscriber to trigger the HTTP request immediately -->
+  <ng-container *ngIf="portifolio$ | async"></ng-container>
 
-    <div class="metrics-container">
-      <mat-card class="metric-card">
-        <mat-card-header>
-          <mat-card-title>Total Cost</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p>Total value: <span class="metric-value">{{ port.metrics.total_value | currency:'BRL' }}</span></p>
-          <p>Total cost: <span class="metric-value">{{ port.metrics.cost | currency:'BRL' }}</span></p>
-        </mat-card-content>
-      </mat-card>
+  <app-loading-bar *ngIf="loading" [loading]="true"></app-loading-bar>
 
-      <mat-card class="metric-card">
-        <mat-card-header>
-          <mat-card-title>Gains</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p>Unrealized: <span class="metric-value">{{ port.metrics.unrealized_gain | currency:'BRL' }}</span></p>
-          <p>Realized: <span class="metric-value">{{ port.metrics.realized_gain | currency:'BRL' }}</span></p>
-          <p>Total: <span class="metric-value total-gain">{{ port.metrics.gain | currency:'BRL' }}</span></p>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="metric-card" *ngIf="port.metrics.last_dividends">
-        <mat-card-header>
-          <mat-card-title>Last Dividends</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p class="metric-value">{{ port.metrics.last_dividends | currency:'BRL' }}</p>
-        </mat-card-content>
-      </mat-card>
+  <ng-container *ngIf="!loading && selectedPortfolio">
+    <div class="header-section">
+      <app-asset-type-selector
+        [options]="assetTypeOptions"
+        [selectedValue]="selectedAssetType"
+        (selectionChange)="onAssetTypeChange($event)">
+      </app-asset-type-selector>
+      <div class="right-actions">
+        <!-- Future date/actions can go here -->
+      </div>
     </div>
 
-    <app-widget-grid [colDefs]="colDefs" [data]="port.assets"></app-widget-grid>
-    
-    <div class="filter-container">
-      <label>Show By:</label>
-      <mat-radio-group [(ngModel)]="mode">
-        <mat-radio-button value="ByPosition">Position</mat-radio-button>
-        <mat-radio-button value="BySector">Sector</mat-radio-button>
-        <mat-radio-button value="BySubSector">Sub-Sector</mat-radio-button>
-      </mat-radio-group>
+    <div class="metrics-grid">
+      <!-- Total Cost & Value Card -->
+      <div class="modern-card">
+        <div class="card-icon-wrapper text-primary bg-primary-light">
+          <span class="material-icons">account_balance_wallet</span>
+        </div>
+        <p class="card-subtitle">Total Value & Cost</p>
+        <h3 class="card-title">{{ selectedPortfolio.metrics.total_value | currency:'BRL' }}</h3>
+        <p class="card-detail">
+          <span class="text-slate">Cost Basis:</span> 
+          <span class="font-semibold">{{ selectedPortfolio.metrics.cost | currency:'BRL' }}</span>
+        </p>
+      </div>
+
+      <!-- Gains Card -->
+      <div class="modern-card">
+        <div class="card-icon-wrapper text-success bg-success-light">
+          <span class="material-icons">trending_up</span>
+        </div>
+        <div class="flex-between">
+          <div>
+            <p class="card-subtitle">Total Gain</p>
+            <h3 class="card-title text-success">{{ selectedPortfolio.metrics.gain | currency:'BRL' }}</h3>
+          </div>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-stats-row">
+          <div class="stat-col">
+            <span class="stat-label">Unrealized</span>
+            <span class="stat-value">{{ selectedPortfolio.metrics.unrealized_gain | currency:'BRL' }}</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-col text-right">
+            <span class="stat-label">Realized</span>
+            <span class="stat-value">{{ selectedPortfolio.metrics.realized_gain | currency:'BRL' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Last Dividends Card -->
+      <div class="modern-card" *ngIf="selectedPortfolio.metrics.last_dividends">
+        <div class="card-icon-wrapper text-warning bg-warning-light">
+          <span class="material-icons">payments</span>
+        </div>
+        <p class="card-subtitle">Last Dividends</p>
+        <h3 class="card-title">{{ selectedPortfolio.metrics.last_dividends | currency:'BRL' }}</h3>
+        <p class="card-detail">
+          <span class="text-slate">Recent yield payout</span>
+        </p>
+      </div>
     </div>
 
-    <app-widget-pie *ngIf="mode === 'ByPosition'"
-      [data]="pieChartData.get(port.name)?.get('ByPosition')"></app-widget-pie>
-    <app-widget-pie *ngIf="mode === 'BySector'" [data]="pieChartData.get(port.name)?.get('BySector')"></app-widget-pie>
-    <app-widget-pie *ngIf="mode === 'BySubSector'"
-      [data]="pieChartData.get(port.name)?.get('BySubSector')"></app-widget-pie>
-  </mat-tab>
-</mat-tab-group>
+    <!-- Main Content Area: Grid + Pie Chart Side by Side -->
+    <div class="main-content-row">
+      
+      <!-- Left side: Data Grid -->
+      <div class="grid-section">
+        <div class="section-header">
+          <h3 class="section-title">Active Positions</h3>
+        </div>
+        <app-widget-grid class="full-height-grid" [colDefs]="colDefs" [data]="selectedPortfolio.assets"></app-widget-grid>
+      </div>
+
+      <!-- Right side: Analytics & Charts -->
+      <div class="analytics-section">
+        <div class="section-header flex-between">
+          <h3 class="section-title">Allocation Analytics</h3>
+        </div>
+        
+        <div class="modern-panel">
+          <div class="filter-controls">
+            <span class="filter-label">Show By:</span>
+            <div class="radio-group-modern">
+              <label class="radio-modern" [class.active]="mode === 'ByPosition'">
+                <input type="radio" name="mode" [(ngModel)]="mode" value="ByPosition" class="hidden">
+                <span class="radio-text">Position</span>
+              </label>
+              <label class="radio-modern" [class.active]="mode === 'BySector'">
+                <input type="radio" name="mode" [(ngModel)]="mode" value="BySector" class="hidden">
+                <span class="radio-text">Sector</span>
+              </label>
+              <label class="radio-modern" [class.active]="mode === 'BySubSector'">
+                <input type="radio" name="mode" [(ngModel)]="mode" value="BySubSector" class="hidden">
+                <span class="radio-text">Sub-Sector</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="chart-container">
+            <app-widget-pie *ngIf="mode === 'ByPosition'"
+              [data]="pieChartData.get(selectedPortfolio.name)?.get('ByPosition')"></app-widget-pie>
+            <app-widget-pie *ngIf="mode === 'BySector'"
+              [data]="pieChartData.get(selectedPortfolio.name)?.get('BySector')"></app-widget-pie>
+            <app-widget-pie *ngIf="mode === 'BySubSector'"
+              [data]="pieChartData.get(selectedPortfolio.name)?.get('BySubSector')"></app-widget-pie>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </ng-container>
+</div>

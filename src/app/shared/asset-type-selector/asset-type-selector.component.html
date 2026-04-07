@@ -1,0 +1,12 @@
+<div class="selector-container">
+  <label class="selector-label">Asset Type</label>
+  <div class="select-wrapper">
+    <select
+      class="asset-select"
+      [ngModel]="selectedValue"
+      (ngModelChange)="onSelectionChange($event)">
+      <option *ngFor="let opt of options" [value]="opt.value">{{ opt.label }}</option>
+    </select>
+    <span class="select-arrow">&#9662;</span>
+  </div>
+</div>

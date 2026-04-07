@@ -1,14 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
 import { RecommendationsComponent } from './recommendations/recommendations.component';
 import { GridComponent } from '../shared/widgets/grid/grid.component';
 import { ColDef } from 'ag-grid-community';
 import { AnalisysService } from './analisys.service';
 import { AnalysisSet } from './models/analysisSet';
-import { Stock } from './models/stock';
-import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
-import { BehaviorSubject, Observable, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, Observable, switchMap, tap } from 'rxjs';
+import { AssetTypeSelectorComponent, AssetTypeOption } from '../shared/asset-type-selector/asset-type-selector.component';
+import { LoadingBarComponent } from '../shared/loading-bar/loading-bar.component';
 
 
 @Component({
@@ -16,20 +15,20 @@ import { BehaviorSubject, Observable, of, switchMap, tap } from 'rxjs';
   standalone: true,
   imports: [
     CommonModule,
-    MatTabsModule,
     RecommendationsComponent,
     GridComponent,
-    MatProgressSpinnerModule
+    AssetTypeSelectorComponent,
+    LoadingBarComponent
   ],
   templateUrl: './analisys.component.html',
   styleUrl: './analisys.component.scss'
 })
 export class AnalisysComponent implements OnInit {
 
-  investClasses = [
-    { Type: 'SHARES', Origin: 'BR'},
-    { Type: 'REITS', Origin: 'BR'}
-  ]
+  assetTypeOptions: AssetTypeOption[] = [
+    { label: 'BR Shares', value: 'SHARES' },
+    { label: 'BR REITs', value: 'REITS' }
+  ];
 
   colDefs: ColDef[] = [
     { field: 'ticker', headerName: 'Papel', width: 100, pinned: 'left' },
@@ -72,46 +71,70 @@ export class AnalisysComponent implements OnInit {
     { field: 'to_equalize', headerName: 'Equalizar', width: 100 }
   ];
 
-  // ['segment', 'pvp', 'dy', 'last_div', 'market_value', 'liqday', 'cd3y', 'c3y', 'patr', 'shareholders', 'management', 'grades', 'mean_price', 'to_buy', 'to_equalize'
-  
-  recommendations = []
-
-  gettingData = false;
-  analysisSets$ : Observable<AnalysisSet<any>[]>;  
-
+  loading = false;
+  analysisSets: AnalysisSet<any>[] = [];
+  analysisSets$: Observable<AnalysisSet<any>[]>;
   selectedAssetType$ = new BehaviorSubject<string>('SHARES');
-  selectedTab: string;
+  selectedTab: string = 'SHARES';
+  currentColDefs: ColDef[] = this.colDefs;
+
+  // Segmented nav for analysis sets
+  setLabels: string[] = [];
+  selectedSetIndex: number = 0;
+  selectedSetData: any[] = [];
 
   constructor(private analysisService: AnalisysService) {}
 
   ngOnInit(): void {
     this.analysisSets$ = this.selectedAssetType$.pipe(
+      tap(type => {
+        setTimeout(() => {
+          this.selectedTab = type;
+          this.loading = true;
+          this.currentColDefs = type === 'SHARES' ? this.colDefs : this.colReitsDefs;
+        });
+      }),
       switchMap(type => {
-        this.selectedTab = type;
-        if(type === "SHARES") {
+        if (type === 'SHARES') {
           return this.analysisService.shareAnalysis$;
         } else {
-          return  this.analysisService.reitAnalysis$;
+          return this.analysisService.reitAnalysis$;
         }
+      }),
+      tap(sets => {
+        setTimeout(() => {
+          this.loading = false;
+          this.analysisSets = sets;
+
+          // Build segmented nav labels from set names
+          this.setLabels = sets.map(s => {
+            const parts = s.name.split('_');
+            return parts.length > 3 ? parts.slice(3).join(' ') : s.name;
+          });
+
+          // Auto-select first set
+          this.selectedSetIndex = 0;
+          this.selectedSetData = sets.length > 0 ? sets[0].analisys : [];
+        });
       })
-    )
+    );
   }
 
-  tabChanged(event: MatTabChangeEvent) {
-    this.gettingData = true;
-    if(event.tab?.textLabel) {
-      this.selectedAssetType$.next(event.tab.textLabel);
-    }    
+  onAssetTypeChange(value: string): void {
+    this.selectedAssetType$.next(value);
+  }
+
+  onSetSelected(index: number): void {
+    this.selectedSetIndex = index;
+    this.selectedSetData = this.analysisSets[index]?.analisys || [];
   }
 
   customPriceRenderer(params: any) {
-    // params.value contains the cell value
     const formattedValue = `$${params.value.toFixed(2)}`;
     return `<span style="color: ${params.value < 0 ? 'red' : 'green'}">${formattedValue}</span>`;
   }
 
   percentageRenderer(params: any) {
-    // params.value contains the cell value
     const formattedValue = `${(params.value * 100).toFixed(1)}%`;
     return `<span style="color: ${params.value < 0 ? 'red' : 'green'}">${formattedValue}</span>`;
   }
@@ -119,7 +142,7 @@ export class AnalisysComponent implements OnInit {
   currencyFormatter(params: any) {
     return `${params.value ? '$ ' + params.value?.toFixed(2) : 'N/A'}`;
   }
-  
+
   largeNumberFormatter(params: any): string {
     const value = params.value;
 

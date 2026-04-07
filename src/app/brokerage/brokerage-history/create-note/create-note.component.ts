@@ -1,9 +1,5 @@
-import {Component, Inject, OnInit} from '@angular/core';
+import {Component, Inject, OnInit, Injectable} from '@angular/core';
 import {
-  MatDialogTitle,
-  MatDialogContent,
-  MatDialogActions,
-  MatDialogClose,
   MAT_DIALOG_DATA,
   MatDialogRef,
 } from '@angular/material/dialog';
@@ -12,13 +8,49 @@ import { FormControl, FormsModule, Validators, ReactiveFormsModule, FormGroup, F
 import { MatInputModule} from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { NativeDateAdapter, MatOptionModule, MatNativeDateModule } from '@angular/material/core';
+import { DateAdapter, NativeDateAdapter, MatOptionModule, MAT_DATE_LOCALE, MAT_DATE_FORMATS } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { DialogData } from '../dialogData';
 import { map, Observable, startWith, tap } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+
+export const CUSTOM_DATE_FORMATS = {
+  parse: {
+    dateInput: 'DD/MM/YYYY',
+  },
+  display: {
+    dateInput: 'DD/MM/YYYY',
+    monthYearLabel: 'MMM YYYY',
+    dateA11yLabel: 'LL',
+    monthYearA11yLabel: 'MMMM YYYY',
+  },
+};
+
+@Injectable()
+export class CustomDateAdapter extends NativeDateAdapter {
+  override parse(value: any): Date | null {
+    if (typeof value === 'string' && value.indexOf('/') > -1) {
+      const parts = value.split('/');
+      if (parts.length === 3 && parts[0].length <= 2 && parts[1].length <= 2) {
+        return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+      }
+    }
+    return super.parse(value);
+  }
+
+  override format(date: Date, displayFormat: Object): string {
+    if (displayFormat === 'DD/MM/YYYY') {
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+    return super.format(date, displayFormat);
+  }
+}
 
 @Component({
   selector: 'app-create-note',
@@ -29,20 +61,18 @@ import { AsyncPipe } from '@angular/common';
     MatInputModule,
     FormsModule,
     MatButtonModule,
-    MatDialogTitle,
-    MatDialogContent,
-    MatDialogActions,
-    MatDialogClose,
     MatSelectModule,
     MatOptionModule,
     ReactiveFormsModule,
     MatDatepickerModule,
-    MatNativeDateModule,
     MatAutocompleteModule,
+    MatIconModule,
     AsyncPipe
   ],
   providers: [
-    NativeDateAdapter,
+    { provide: DateAdapter, useClass: CustomDateAdapter },
+    { provide: MAT_DATE_FORMATS, useValue: CUSTOM_DATE_FORMATS },
+    { provide: MAT_DATE_LOCALE, useValue: 'pt-BR' }
   ],
   templateUrl: './create-note.component.html',
   styleUrl: './create-note.component.scss'
@@ -51,12 +81,26 @@ import { AsyncPipe } from '@angular/common';
 export class CreateNoteComponent implements OnInit {
   filteredTickers: Observable<string[]>;
   form: FormGroup;
-  dateControl = new FormControl(this.data?.note.date || new Date().toLocaleDateString('pt-BR'), [Validators.required, Validators.pattern(/^\d{2}(\/|-)\d{2}(\/|-)\d{4}$/)]);
+  dateControl = new FormControl<Date | string>(this.getInitialDate(), [Validators.required]);
   tickerControl = new FormControl(this.data?.note.ticker, [Validators.required]);
   opControl = new FormControl(this.data?.note.op, [Validators.required]);
   priceControl = new FormControl(this.data?.note.price, [Validators.required]);
   quantityControl = new FormControl(this.data?.note.qtd, [Validators.required]);
   feesControl = new FormControl(this.data?.note.total_rat, [Validators.required]);
+
+  private getInitialDate(): Date {
+    const d: any = this.data?.note.date;
+    if (d) {
+      if (d instanceof Date) return d;
+      if (typeof d === 'string') {
+        const parts = d.split('/');
+        if (parts.length === 3) {
+          return new Date(+parts[2], +parts[1] - 1, +parts[0]);
+        }
+      }
+    }
+    return new Date();
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -90,7 +134,7 @@ export class CreateNoteComponent implements OnInit {
       return 'You must enter a value';
     }
 
-    return control.hasError('email') ? 'Not a valid email' : '';
+    return control.hasError('email') ? 'Invalid format' : '';
   }
 
   onCancel() {
@@ -98,9 +142,16 @@ export class CreateNoteComponent implements OnInit {
   }
 
   onSave() {
-    if(this.form.valid) {
-      this.dialogRef.close(this.form.value);
-    }    
+    if (this.form.valid) {
+      const result = { ...this.form.value };
+      if (result.dateControl instanceof Date) {
+        const day = result.dateControl.getDate().toString().padStart(2, '0');
+        const month = (result.dateControl.getMonth() + 1).toString().padStart(2, '0');
+        const year = result.dateControl.getFullYear();
+        result.dateControl = `${day}/${month}/${year}`;
+      }
+      this.dialogRef.close(result);
+    }
   }
 }
 
