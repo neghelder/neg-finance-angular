@@ -30,6 +30,14 @@ export class BrokerageService {
       );
   }
 
+  updateTickerName(ticker: string, new_name: string, collection_name: string) {
+    return this.http.put(`http://localhost:8000/brokerage/update-ticker-name?ticker=${ticker}&new_name=${new_name}&collection=${collection_name}`, {}, this.httpOptions)
+      .pipe(
+        tap(() => this.loadBrokerageHistory()),
+        catchError(this.handleError)
+      );
+  }
+
   deleteNote(id: Number, collection_name: string) {
     return this.http.delete(`http://localhost:8000/brokerage/note/${id}?collection=${collection_name}`)
       .pipe(

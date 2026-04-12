@@ -13,6 +13,9 @@
       <button *ngIf="selectedData != undefined" mat-mini-fab color="dark" (click)="onEdit()">
         <mat-icon>edit</mat-icon>
       </button>
+      <button mat-mini-fab color="accent" (click)="onRenameTicker()">
+        <mat-icon>drive_file_rename_outline</mat-icon>
+      </button>
       <button mat-mini-fab color="primary" (click)="onAdd()">
         <mat-icon>add</mat-icon>
       </button>

@@ -45,15 +45,15 @@ describe('BrokerageHistoryComponent', () => {
     {
       name: 'acoes',
       notes: [
-        { ticker: 'PETR4', date: '01/01/2024', op: 'C', qtd: 100, price: 35.5, total_rat: 0.5 },
-        { ticker: 'VALE3', date: '02/01/2024', op: 'C', qtd: 50, price: 70.0, total_rat: 0.3 },
-        { ticker: 'PETR4', date: '03/01/2024', op: 'V', qtd: 50, price: 38.0, total_rat: 0.4 }
+        { ticker: 'PETR4', date: '01/01/2024', op: 'C', qtd: 100, price: 35.5, total_rat: 0.5, amount: 100 },
+        { ticker: 'VALE3', date: '02/01/2024', op: 'C', qtd: 50, price: 70.0, total_rat: 0.3, amount: 50 },
+        { ticker: 'PETR4', date: '03/01/2024', op: 'V', qtd: 100, price: 38.0, total_rat: 0.4, amount: 0 }
       ]
     },
     {
       name: 'fiis',
       notes: [
-        { ticker: 'HGLG11', date: '05/01/2024', op: 'C', qtd: 10, price: 160.0, total_rat: 0.3 }
+        { ticker: 'HGLG11', date: '05/01/2024', op: 'C', qtd: 10, price: 160.0, total_rat: 0.3, amount: 10 }
       ]
     }
   ];
@@ -64,7 +64,8 @@ describe('BrokerageHistoryComponent', () => {
     brokerageService = {
       brokerageHistory$: brokerageHistorySubject.asObservable(),
       updateNote: jest.fn().mockReturnValue(of({})),
-      deleteNote: jest.fn().mockReturnValue(of({}))
+      deleteNote: jest.fn().mockReturnValue(of({})),
+      updateTickerName: jest.fn().mockReturnValue(of({}))
     };
 
     dialog = {
@@ -115,12 +116,12 @@ describe('BrokerageHistoryComponent', () => {
       ]);
     }));
 
-    it('should deduplicate ticker names', fakeAsync(() => {
+    it('should filter ticker names with positive amount and deduplicate', fakeAsync(() => {
       component.brokerageCollection$.subscribe();
       tick();
 
-      // PETR4 appears twice, should be deduplicated
-      expect(component.tickerNames).toEqual(['PETR4', 'VALE3']);
+      // PETR4 has amount 0 in its latest note, so it should not be listed
+      expect(component.tickerNames).toEqual(['VALE3']);
     }));
   });
 
@@ -238,6 +239,21 @@ describe('BrokerageHistoryComponent', () => {
           id: 42,
           ticker: 'PETR4'
         }));
+      }));
+    });
+
+    describe('onRenameTicker', () => {
+      it('should call updateTickerName when dialog returns valid result', fakeAsync(() => {
+        const dialogResult = {
+          oldTicker: 'VALE3',
+          newTicker: 'VALE4'
+        };
+        const dialogRef = { afterClosed: () => of(dialogResult) } as any;
+        (dialog.open as jest.Mock).mockReturnValue(dialogRef);
+
+        component.onRenameTicker();
+
+        expect(brokerageService.updateTickerName).toHaveBeenCalledWith('VALE3', 'VALE4', 'acoes');
       }));
     });
 

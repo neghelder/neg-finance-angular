@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { CreateNoteComponent } from './create-note/create-note.component';
+import { RenameTickerComponent } from './rename-ticker/rename-ticker.component';
 import { BrokerageCollection, Note } from '../brokerage';
 import { map, Observable, tap } from 'rxjs';
 import { AssetTypeSelectorComponent, AssetTypeOption } from '../../shared/asset-type-selector/asset-type-selector.component';
@@ -34,7 +35,7 @@ export class BrokerageHistoryComponent {
   colDefs: ColDef[] = [
     { field: 'date', headerName: 'Data', width: 115, cellRenderer: this.inputRenderer },
     { field: 'ticker', headerName: 'Papel', width: 100, cellRenderer: this.inputRenderer, filter: 'agTextColumnFilter' },
-    { field: 'op', headerName: 'OP', width: 60, cellRenderer: this.inputRenderer},
+    { field: 'op', headerName: 'OP', width: 60, cellRenderer: this.inputRenderer },
     { field: 'qtd', headerName: 'Quant.', width: 80, cellRenderer: this.inputRenderer },
     { field: 'price', headerName: 'Preço', width: 80, cellRenderer: this.inputRenderer },
     { field: 'total_rat', headerName: 'Taxas', width: 70, cellRenderer: this.inputRenderer },
@@ -93,17 +94,13 @@ export class BrokerageHistoryComponent {
             this.selectedAssetType = collections[0].name;
             this.selectedTab = collections[0].name.replaceAll('_', ' ');
             this.selectedNotes = collections[0].notes;
-            this.tickerNames = collections[0].notes
-              .map(n => n.ticker)
-              .filter((v, i, self) => self.indexOf(v) === i);
+            this.tickerNames = this.getTickersWithPositiveAmount(collections[0].notes);
           } else if (this.selectedAssetType) {
             // Refresh data for current selection (e.g. after CRUD)
             const current = collections.find(c => c.name === this.selectedAssetType);
             if (current) {
               this.selectedNotes = current.notes;
-              this.tickerNames = current.notes
-                .map(n => n.ticker)
-                .filter((v, i, self) => self.indexOf(v) === i);
+              this.tickerNames = this.getTickersWithPositiveAmount(current.notes);
             }
           }
         });
@@ -119,10 +116,37 @@ export class BrokerageHistoryComponent {
     const collection = this.allCollections.find(c => c.name === value);
     if (collection) {
       this.selectedNotes = collection.notes;
-      this.tickerNames = collection.notes
-        .map(n => n.ticker)
-        .filter((v, i, self) => self.indexOf(v) === i);
+      this.tickerNames = this.getTickersWithPositiveAmount(collection.notes);
     }
+  }
+
+  private getTickersWithPositiveAmount(notes: Note[]): string[] {
+    if (!notes || notes.length === 0) return [];
+
+    // 1. Sort notes chronologically to ensure the last one processed per ticker is the most recent.
+    // Assuming date format is DD/MM/YYYY
+    const sortedNotes = [...notes].sort((a, b) => {
+      const parse = (d: string) => {
+        const p = d.split('/');
+        return new Date(+p[2], +p[1] - 1, +p[0]).getTime();
+      };
+      return parse(a.date) - parse(b.date);
+    });
+
+    // 2. Map tickers to their latest amount.
+    const tickerMap = new Map<string, number>();
+    sortedNotes.forEach(n => {
+      if (n.amount !== undefined) {
+        const ticker = n.ticker.trim().toUpperCase();
+        tickerMap.set(ticker, n.amount);
+      }
+    });
+
+    // 3. Filter only those with a current amount > 0 and return unique sorted keys.
+    return Array.from(tickerMap.entries())
+      .filter(([_, amount]) => amount > 0)
+      .map(([ticker, _]) => ticker)
+      .sort();
   }
 
   numberRenderer(params: any) {
@@ -136,13 +160,13 @@ export class BrokerageHistoryComponent {
 
   onAdd() {
     const dialogRef = this.dialog.open(CreateNoteComponent, {
-      data: { note: this.note, tickerNames : this.tickerNames},
+      data: { note: this.note, tickerNames: this.tickerNames },
       width: '650px',
       maxWidth: '95vw'
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if(!result || !result?.tickerControl || !result?.dateControl) {
+      if (!result || !result?.tickerControl || !result?.dateControl) {
         return;
       }
 
@@ -167,16 +191,17 @@ export class BrokerageHistoryComponent {
 
   onEdit() {
     const dialogRef = this.dialog.open(CreateNoteComponent, {
-      data: { title: 'Edit note',
+      data: {
+        title: 'Edit note',
         note: this.selectedData,
-        tickerNames : this.tickerNames
+        tickerNames: this.tickerNames
       },
       width: '650px',
       maxWidth: '95vw'
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if(!result || !result?.tickerControl || !result?.dateControl) {
+      if (!result || !result?.tickerControl || !result?.dateControl) {
         return;
       }
       const data = {
@@ -197,6 +222,30 @@ export class BrokerageHistoryComponent {
     });
   }
 
+  onRenameTicker() {
+    const dialogRef = this.dialog.open(RenameTickerComponent, {
+      data: {
+        tickerNames: this.tickerNames,
+        selectedTicker: this.selectedData?.ticker
+      },
+      width: '650px',
+      maxWidth: '95vw'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result || !result.oldTicker || !result.newTicker) {
+        return;
+      }
+
+      const collectionName = this.selectedTab?.replace(' ', '_');
+      this.brokerageService.updateTickerName(result.oldTicker, result.newTicker, collectionName).subscribe(res => {
+        console.log('brokerage ticker renamed successfully.');
+      });
+
+      this.selectedData = undefined;
+    });
+  }
+
   onDelete() {
     const collectioName = this.selectedTab?.replace(' ', '_');
     const id = this.selectedData.id;
@@ -213,7 +262,7 @@ export class BrokerageHistoryComponent {
   }
 
   onGridReady(event: GridReadyEvent<any>) {
-    if(this.lastSelectedRownIndex === -1)
+    if (this.lastSelectedRownIndex === -1)
       return;
 
     event.api.ensureIndexVisible(this.lastSelectedRownIndex, "middle");
