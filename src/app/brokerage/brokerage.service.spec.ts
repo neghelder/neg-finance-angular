@@ -104,6 +104,20 @@ describe('BrokerageService', () => {
     });
   });
 
+  describe('updateTickerName', () => {
+    it('should PUT ticker rename data and reload history', () => {
+      service.updateTickerName('MRFG3', 'MBRF3', 'BR_SHARES').subscribe();
+
+      const putReq = httpMock.expectOne('http://localhost:8000/brokerage/update-ticker-name?ticker=MRFG3&new_name=MBRF3&collection=BR_SHARES');
+      expect(putReq.request.method).toBe('PUT');
+      putReq.flush({});
+
+      // After PUT success, it reloads history
+      const reloadReq = httpMock.expectOne('http://localhost:8000/brokerage/notes?sort=1');
+      reloadReq.flush(mockCollections);
+    });
+  });
+
   describe('handleError', () => {
     it('should handle client-side error', () => {
       const noteData = { collection: 'acoes', id: -1, ticker: 'VALE3', date: '15/03/2024', total_rat: 0.5, op: 'C', price: 70, qtd: 50 };

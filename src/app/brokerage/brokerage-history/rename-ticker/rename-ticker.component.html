@@ -1,0 +1,52 @@
+<div class="dialog-container">
+  <!-- Header Section -->
+  <div class="dialog-header">
+    <div>
+      <h2 class="dialog-title">Rename Ticker</h2>
+      <p class="dialog-subtitle">Update a ticker sequentially across the collection.</p>
+    </div>
+    <button class="close-btn" type="button" (click)="onCancel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+  
+  <form [formGroup]="form" class="form-content">
+    <div class="form-grid">
+      <!-- Current Asset -->
+      <div class="input-group">
+        <label><mat-icon>monitoring</mat-icon> Current Asset</label>
+        <div class="select-wrapper">
+          <select [formControl]="oldTickerControl" class="form-input">
+            <option value="" disabled selected>Select ticker to rename</option>
+            @for (option of data.tickerNames; track option) {
+              <option [value]="option">{{option}}</option>
+            }
+          </select>
+        </div>
+      </div>
+      
+      <!-- New Asset -->
+      <div class="input-group">
+        <label><mat-icon>edit_note</mat-icon> New Asset</label>
+        <input type="text" [formControl]="newTickerControl" class="form-input" placeholder="Ex: PETR4" style="text-transform: uppercase;">
+      </div>
+    </div>
+
+    <!-- Editorial Box -->
+    <div class="editorial-box">
+      <div class="icon-circle">
+        <mat-icon>info</mat-icon>
+      </div>
+      <p class="editorial-text">
+        This action will rename the selected ticker in all historical notes of the current collection. Please verify before proceeding.
+      </p>
+    </div>
+  </form>
+
+  <div class="dialog-footer">
+    <button type="button" class="btn-cancel" (click)="onCancel()">Cancel</button>
+    <button type="button" class="btn-confirm" (click)="onSave()" [disabled]="form.invalid">
+      Confirm <mat-icon>check_circle</mat-icon>
+    </button>
+  </div>
+</div>
