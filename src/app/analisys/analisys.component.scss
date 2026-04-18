@@ -72,3 +72,26 @@ app-widget-grid {
     }
   }
 }
+
+.edit-criteria-btn {
+  background-color: #673ab7;
+  color: #fff;
+  border-radius: 8px;
+  border: none;
+  margin-left: 8px;
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #5e35a0;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(103, 58, 183, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}

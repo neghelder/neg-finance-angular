@@ -15,7 +15,13 @@ export const routes: Routes = [
             { path: 'dashboard', component: DashboardComponent},
             { path: 'portifolio', component: PortifolioComponent, /*resolve: { portifolio: PortifolioResolverService }*/},
             { path: 'brokerage-history', component: BrokerageHistoryComponent},
-            { path: 'analysis', component: AnalisysComponent},
+            { 
+              path: 'analysis', 
+              children: [
+                { path: '', component: AnalisysComponent },
+                { path: 'criteria', loadComponent: () => import('./analisys/criteria-editor/criteria-editor.component').then(m => m.CriteriaEditorComponent) }
+              ]
+            },
             { path: '', redirectTo: 'dashboard', pathMatch: 'full'},
         ]
     },

@@ -5,6 +5,9 @@ import { Recommendation } from './recommendations/recommendation';
 import { Stock } from './models/stock';
 import { AnalysisSet } from './models/analysisSet';
 import { Reit } from './models/reit';
+import { CriteriaConfig } from './models/criteria';
+
+
 
 @Injectable({
   providedIn: 'root'
@@ -12,12 +15,12 @@ import { Reit } from './models/reit';
 export class AnalisysService {
 
   private baseUrl: string = 'http://localhost:8000/analisys';
-  private httpOptions = { headers: new HttpHeaders({ 'Content-Type': 'application/json'})};
+  private httpOptions = { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) };
 
   constructor(private http: HttpClient) { }
 
   getBuyRecommendations(type: string, origin: string, budget: number) {
-    return this.http.get<Recommendation[]>(this.baseUrl + `/${type}/buy-rec?origin=${origin}&budget=${budget}`, this.httpOptions)
+    return this.http.get<Recommendation[]>(this.baseUrl + `/${type}s/buy-rec?origin=${origin}&budget=${budget}`, this.httpOptions)
       .pipe(
         catchError(this.handleError)
       );
@@ -30,6 +33,18 @@ export class AnalisysService {
   reitAnalysis$ = this.http.get<AnalysisSet<Reit>[]>(this.baseUrl + `/reits?origin=BR`, this.httpOptions).pipe(
     catchError(this.handleError)
   )
+
+  getCriteria(): Observable<CriteriaConfig> {
+    return this.http.get<CriteriaConfig>(this.baseUrl + '/criteria', this.httpOptions).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  saveCriteria(config: CriteriaConfig): Observable<CriteriaConfig> {
+    return this.http.put<CriteriaConfig>(this.baseUrl + '/criteria', config, this.httpOptions).pipe(
+      catchError(this.handleError)
+    );
+  }
 
   private handleError(err: HttpErrorResponse): Observable<never> {
     // in a real world app, we may send the server to some remote logging infrastructure

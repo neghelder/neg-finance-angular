@@ -61,12 +61,12 @@ describe('AnalisysComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should default to SHARES tab', () => {
-    expect(component.selectedTab).toBe('SHARES');
+  it('should default to SHARE tab', () => {
+    expect(component.selectedTab).toBe('SHARE');
     expect(component.currentColDefs).toBe(component.colDefs);
   });
 
-  describe('ngOnInit with SHARES', () => {
+  describe('ngOnInit with SHARE', () => {
     it('should load share analysis sets and auto-select first', fakeAsync(() => {
       component.ngOnInit();
       component.analysisSets$.subscribe();
@@ -89,12 +89,12 @@ describe('AnalisysComponent', () => {
   });
 
   describe('onAssetTypeChange', () => {
-    it('should switch to REITS column definitions', fakeAsync(() => {
+    it('should switch to REIT column definitions', fakeAsync(() => {
       component.ngOnInit();
       component.analysisSets$.subscribe();
       tick();
 
-      component.onAssetTypeChange('REITS');
+      component.onAssetTypeChange('REIT');
       tick();
 
       expect(component.currentColDefs).toBe(component.colReitsDefs);
@@ -123,15 +123,13 @@ describe('AnalisysComponent', () => {
   });
 
   describe('percentageRenderer', () => {
-    it('should format positive percentage in green', () => {
+    it('should format positive percentage', () => {
       const result = component.percentageRenderer({ value: 0.153 });
-      expect(result).toContain('color: green');
       expect(result).toContain('15.3%');
     });
 
-    it('should format negative percentage in red', () => {
+    it('should format negative percentage', () => {
       const result = component.percentageRenderer({ value: -0.05 });
-      expect(result).toContain('color: red');
       expect(result).toContain('-5.0%');
     });
   });
@@ -183,14 +181,14 @@ describe('AnalisysComponent', () => {
   describe('criteria cell styling', () => {
     beforeEach(() => {
       component.activeCriteria = {
-        'SHARES': {
+        'SHARE': {
           'BR': {
-            'pl': { min: 0, max: 10 },
-            'dy': { min: 0.07 }
+            'pl': { min: 0, max: 10, unit: 'number' },
+            'dy': { min: 0.07, unit: 'perc' }
           }
         }
       };
-      component.selectedTab = 'SHARES';
+      component.selectedTab = 'SHARE';
     });
 
     it('should fail criteria if below min', () => {
@@ -215,21 +213,9 @@ describe('AnalisysComponent', () => {
       expect(result).toEqual({ color: 'red', fontWeight: 'bold' });
     });
 
-    it('should return null cellStyle if passes', () => {
+    it('should return green cellStyle if passes', () => {
       const result = component.cellStyleFn({ colDef: { field: 'pl' }, value: 5 });
-      expect(result).toBeNull();
-    });
-
-    it('should omit inline color from percentageRenderer when criteria fails', () => {
-      const result = component.percentageRenderer({ colDef: { field: 'dy' }, value: 0.05 });
-      expect(result).not.toContain('style="color:');
-      expect(result).toContain('<span>5.0%</span>');
-    });
-
-    it('should keep inline color from percentageRenderer when criteria passes', () => {
-      const result = component.percentageRenderer({ colDef: { field: 'dy' }, value: 0.08 });
-      expect(result).toContain('color: green');
-      expect(result).toContain('8.0%');
+      expect(result).toEqual({ color: 'green' });
     });
   });
 });

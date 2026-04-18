@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { AnalisysService, MOCK_CRITERIA } from './analisys.service';
+import { AnalisysService } from './analisys.service';
 
 describe('AnalisysService', () => {
   let service: AnalisysService;
@@ -58,7 +58,7 @@ describe('AnalisysService', () => {
         { ticker: 'total_spent', amount: 950 }
       ];
 
-      service.getBuyRecommendations('shares', 'BR', 1000).subscribe(data => {
+      service.getBuyRecommendations('share', 'BR', 1000).subscribe(data => {
         expect(data).toEqual(mockRecs);
         expect(data.length).toBe(2);
       });
@@ -69,7 +69,7 @@ describe('AnalisysService', () => {
     });
 
     it('should handle server error', () => {
-      service.getBuyRecommendations('shares', 'BR', 1000).subscribe({
+      service.getBuyRecommendations('share', 'BR', 1000).subscribe({
         error: (err) => {
           expect(err).toContain('Backend returned code 500');
         }
@@ -94,23 +94,29 @@ describe('AnalisysService', () => {
   });
 
   describe('criteria API', () => {
-    it('should return mock criteria from BehaviorSubject', (done) => {
+    it('should fetch criteria via GET', () => {
+      const mockCriteria = { SHARE: { BR: { pl: { max: 10 } } } };
+
       service.getCriteria().subscribe(criteria => {
-        expect(criteria).toEqual(MOCK_CRITERIA);
-        done();
+        expect(criteria).toEqual(mockCriteria);
       });
+
+      const req = httpMock.expectOne('http://localhost:8000/analisys/criteria');
+      expect(req.request.method).toBe('GET');
+      req.flush(mockCriteria);
     });
 
-    it('should update criteria via saveCriteria', (done) => {
-      const updatedCriteria = JSON.parse(JSON.stringify(MOCK_CRITERIA));
-      updatedCriteria['SHARES']['BR']['pl'] = { min: 2, max: 12 };
+    it('should update criteria via saveCriteria', () => {
+      const criteriaPayload = { SHARE: { BR: { pl: { max: 15 } } } };
       
-      service.saveCriteria(updatedCriteria).subscribe(() => {
-        service.getCriteria().subscribe(criteria => {
-          expect(criteria['SHARES']['BR']['pl']).toEqual({ min: 2, max: 12 });
-          done();
-        });
+      service.saveCriteria(criteriaPayload as any).subscribe(criteria => {
+        expect(criteria).toEqual(criteriaPayload);
       });
+
+      const req = httpMock.expectOne('http://localhost:8000/analisys/criteria');
+      expect(req.request.method).toBe('PUT');
+      expect(req.request.body).toEqual(criteriaPayload);
+      req.flush(criteriaPayload);
     });
   });
 });

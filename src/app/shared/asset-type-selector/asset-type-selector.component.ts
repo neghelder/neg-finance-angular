@@ -15,6 +15,7 @@ export interface AssetTypeOption {
   styleUrl: './asset-type-selector.component.scss'
 })
 export class AssetTypeSelectorComponent {
+  @Input() label: string = 'Asset Type';
   @Input() options: AssetTypeOption[] = [];
   @Input() selectedValue: string = '';
   @Output() selectionChange = new EventEmitter<string>();
