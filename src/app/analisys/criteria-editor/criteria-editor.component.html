@@ -1,0 +1,70 @@
+<div class="content-container">
+
+  <div class="controls-row">
+    <app-asset-type-selector [options]="assetTypeOptions" [selectedValue]="selectedAssetType"
+      (selectionChange)="onAssetTypeChange($event)">
+    </app-asset-type-selector>
+
+    <app-asset-type-selector label="Market Segment" [options]="originOptions" [selectedValue]="selectedOrigin"
+      (selectionChange)="onOriginChange($event)">
+    </app-asset-type-selector>
+
+    <div class="spacer"></div>
+
+    <button class="return-btn" routerLink="/analysis">
+      ← Back to Analysis
+    </button>
+  </div>
+
+  <div class="editor-panel" *ngIf="activeConfig">
+    <div class="table-container">
+      <table class="criteria-table">
+        <thead>
+          <tr>
+            <th class="col-criterion">Criterion</th>
+            <th class="col-min">Min Value</th>
+            <th class="col-max">Max Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of fieldsList" class="table-row">
+            <td class="cell-label">{{ fieldLabels[item.key] || item.key }}</td>
+            <td class="cell-input">
+              <div class="input-wrapper">
+                <input type="number" class="form-control" [(ngModel)]="item.criteria.min"
+                  [disabled]="item.criteria.min === undefined"
+                  [placeholder]="item.criteria.min === undefined ? 'No limit' : ''" step="0.01">
+                <span *ngIf="item.criteria.unit === 'perc'" class="unit-perc">%</span>
+              </div>
+            </td>
+            <td class="cell-input">
+              <div class="input-wrapper">
+                <input type="number" class="form-control" [(ngModel)]="item.criteria.max"
+                  [disabled]="item.criteria.max === undefined"
+                  [placeholder]="item.criteria.max === undefined ? 'No limit' : ''" step="0.01">
+                <span *ngIf="item.criteria.unit === 'perc'" class="unit-perc">%</span>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="fieldsList.length === 0">
+            <td colspan="3" class="no-data">No criteria configured for this selection.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="footer-actions">
+      <div class="info-text">
+        <span class="material-icons-outlined">info</span>
+        <p>Numeric values apply to the quantitative filters directly.</p>
+        <span class="success-msg" *ngIf="saveSuccess">✓ Saved successfully</span>
+      </div>
+
+      <div class="action-buttons">
+        <button class="btn-secondary" (click)="resetToDefaults()">Reset to Defaults</button>
+        <button class="btn-primary" (click)="save()" [disabled]="saving">Save Criteria</button>
+      </div>
+    </div>
+  </div>
+</div>
