@@ -1,16 +1,184 @@
 :host {
-  .mat-icon {
-    vertical-align: middle;
-    margin-right: 20px;
+  display: block;
+  height: 100%;
+  background: var(--shell-bg-primary);
+  font-family: var(--shell-font-family);
+  overflow-x: hidden;
+  overflow-y: auto;
+  
+  /* Hide scrollbar */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
   }
-  .profile-card {
-    text-align: center;
-    padding: 0 20px 20px 20px;
-    img {
-      width: 100px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 50%;
-    }
+}
+
+/* ── Sidebar container ── */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--shell-spacing-lg) 0;
+}
+
+/* ── Profile Card ── */
+
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--shell-spacing-sm) var(--shell-spacing-lg);
+  gap: var(--shell-spacing-md);
+}
+
+.profile-avatar-wrapper {
+  flex-shrink: 0;
+}
+
+.profile-avatar {
+  width: var(--shell-avatar-size-md);
+  height: var(--shell-avatar-size-md);
+  object-fit: cover;
+  border-radius: 50%;
+  border: var(--shell-avatar-ring);
+  transition: width var(--shell-transition-base),
+              height var(--shell-transition-base);
+}
+
+.collapsed .profile-avatar {
+  width: var(--shell-avatar-size-sm);
+  height: var(--shell-avatar-size-sm);
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  animation: fadeIn var(--shell-transition-base) ease;
+}
+
+.profile-name {
+  font-size: var(--shell-font-size-base);
+  font-weight: 600;
+  color: var(--shell-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-email {
+  font-size: var(--shell-font-size-xs);
+  color: var(--shell-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Divider ── */
+
+.sidebar-divider {
+  height: 1px;
+  margin: var(--shell-spacing-md) var(--shell-spacing-lg);
+  background: var(--shell-divider);
+}
+
+/* ── Navigation List ── */
+
+.nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--shell-spacing-xs);
+  padding: 0 var(--shell-spacing-sm);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--shell-spacing-md);
+  padding: var(--shell-spacing-md) var(--shell-spacing-md);
+  border-radius: 8px;
+  color: var(--shell-text-secondary);
+  text-decoration: none;
+  font-size: var(--shell-font-size-base);
+  font-weight: 400;
+  cursor: pointer;
+  position: relative;
+  transition: background var(--shell-transition-fast),
+              color var(--shell-transition-fast);
+
+  &:hover {
+    background: var(--shell-bg-hover);
+    color: var(--shell-text-primary);
+  }
+}
+
+/* ── Active route indicator ── */
+
+.nav-item--active {
+  background: var(--shell-bg-active);
+  color: var(--shell-accent-light);
+  font-weight: 500;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--shell-accent);
+  }
+
+  .nav-icon {
+    color: var(--shell-accent-light);
+  }
+}
+
+/* ── Icon styling ── */
+
+.nav-icon {
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: var(--shell-text-secondary);
+  transition: color var(--shell-transition-fast);
+}
+
+/* ── Label ── */
+
+.nav-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: fadeIn var(--shell-transition-base) ease;
+}
+
+/* ── Collapsed state ── */
+
+.collapsed .nav-item {
+  justify-content: center;
+  padding: var(--shell-spacing-md);
+}
+
+.collapsed .profile-card {
+  padding: var(--shell-spacing-sm);
+}
+
+/* ── Animations ── */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }

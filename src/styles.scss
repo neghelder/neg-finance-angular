@@ -1,1 +1,77 @@
+/* ===================================================================
+   NegFinance — Global Design Tokens (Shell)
+   =================================================================== */
+
+:root {
+  /* ── Shell Colors (Dark Theme) ── */
+  --shell-bg-primary: #1a1d23;
+  --shell-bg-secondary: #22262e;
+  --shell-bg-surface: #2a2f38;
+  --shell-bg-hover: rgba(255, 255, 255, 0.06);
+  --shell-bg-active: rgba(99, 140, 255, 0.12);
+
+  /* Gradient for header */
+  --shell-gradient-start: #1a1d23;
+  --shell-gradient-end: #2a2f38;
+
+  /* ── Accent / Brand ── */
+  --shell-accent: #638cff;
+  --shell-accent-light: #8aabff;
+  --shell-accent-muted: rgba(99, 140, 255, 0.3);
+
+  /* ── Text Colors ── */
+  --shell-text-primary: #f0f2f5;
+  --shell-text-secondary: #9ca3af;
+  --shell-text-muted: #6b7280;
+
+  /* ── Border / Divider ── */
+  --shell-border: rgba(255, 255, 255, 0.08);
+  --shell-divider: rgba(255, 255, 255, 0.06);
+
+  /* ── Typography ── */
+  --shell-font-family: 'Inter', 'Roboto', sans-serif;
+  --shell-font-size-xs: 0.7rem;
+  --shell-font-size-sm: 0.8rem;
+  --shell-font-size-base: 0.9rem;
+  --shell-font-size-lg: 1.1rem;
+  --shell-font-size-title: 1.25rem;
+
+  /* ── Spacing ── */
+  --shell-spacing-xs: 4px;
+  --shell-spacing-sm: 8px;
+  --shell-spacing-md: 12px;
+  --shell-spacing-lg: 16px;
+  --shell-spacing-xl: 24px;
+
+  /* ── Sidebar Dimensions ── */
+  --sidebar-width-expanded: 220px;
+  --sidebar-width-collapsed: 64px;
+
+  /* ── Transitions ── */
+  --shell-transition-fast: 150ms ease;
+  --shell-transition-base: 250ms ease;
+  --shell-transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Elevation ── */
+  --shell-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shell-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shell-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+  /* ── Avatar ── */
+  --shell-avatar-ring: 2px solid var(--shell-accent-muted);
+  --shell-avatar-size-sm: 36px;
+  --shell-avatar-size-md: 56px;
+
+  /* ── Header ── */
+  --header-height: 56px;
+}
+
+/* ── Global resets for shell ── */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: var(--shell-font-family);
+}
+
 /* You can add global styles to this file, and also import other style files */

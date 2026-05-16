@@ -1,3 +1,126 @@
-.example-spacer {
-  flex: 1 1 auto;
+:host {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+  padding: 0 var(--shell-spacing-lg);
+  background: linear-gradient(135deg, var(--shell-gradient-start), var(--shell-gradient-end));
+  border-bottom: 1px solid var(--shell-border);
+  box-shadow: var(--shell-shadow-sm);
+  font-family: var(--shell-font-family);
+}
+
+/* ── Left section: hamburger + title ── */
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--shell-spacing-md);
+}
+
+.header-title {
+  margin: 0;
+  font-size: var(--shell-font-size-title);
+  font-weight: 600;
+  color: var(--shell-text-primary);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* ── Right section: notifications + avatar / sign-in ── */
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--shell-spacing-sm);
+}
+
+/* ── Icon buttons (hamburger, notifications) ── */
+
+.header-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--shell-text-secondary);
+  cursor: pointer;
+  transition: background var(--shell-transition-fast),
+              color var(--shell-transition-fast);
+
+  &:hover {
+    background: var(--shell-bg-hover);
+    color: var(--shell-text-primary);
+  }
+
+  &:active {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* ── Avatar button ── */
+
+.header-avatar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 2px solid var(--shell-accent-muted);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color var(--shell-transition-fast),
+              box-shadow var(--shell-transition-fast);
+  overflow: hidden;
+
+  &:hover {
+    border-color: var(--shell-accent);
+    box-shadow: 0 0 0 3px var(--shell-accent-muted);
+  }
+}
+
+.header-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* ── Sign-in button ── */
+
+.header-signin-btn {
+  padding: 6px 20px;
+  border: 1px solid var(--shell-accent);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--shell-accent-light);
+  font-family: var(--shell-font-family);
+  font-size: var(--shell-font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--shell-transition-fast),
+              color var(--shell-transition-fast);
+
+  &:hover {
+    background: var(--shell-accent);
+    color: #fff;
+  }
 }

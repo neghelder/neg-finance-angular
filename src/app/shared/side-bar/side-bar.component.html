@@ -1,21 +1,49 @@
-<mat-nav-list>
+<nav class="sidebar" [class.collapsed]="collapsed">
+  <!-- Profile Card -->
   <div class="profile-card">
-    <div class="header">
-      <h2>Helder Silva</h2>
-      <h4>neghelder&#64;gmail.com</h4>
+    <div class="profile-avatar-wrapper">
+      <img src="../../../assets/user-photo.jpg" alt="Helder Silva" class="profile-avatar" />
     </div>
-    <img src="../../../assets/user-photo.jpg" alt="Helder SILVA">
+    @if (!collapsed) {
+      <div class="profile-info">
+        <span class="profile-name">Helder Silva</span>
+        <span class="profile-email">neghelder&#64;gmail.com</span>
+      </div>
+    }
   </div>
 
-  <mat-divider></mat-divider>
+  <!-- Divider -->
+  <div class="sidebar-divider"></div>
 
-  <a mat-list-item routerLinkActive="list-item-active"
-    routerLink="/dashboard"><mat-icon>dashboard</mat-icon>Dashboard</a>
-  <a mat-list-item routerLinkActive="list-item-active"
-    routerLink="/portifolio"><mat-icon>list-alt</mat-icon>Portifolio</a>
-  <a mat-list-item routerLinkActive="list-item-active"
-    routerLink="/brokerage-history"><mat-icon>timeline</mat-icon>Brokerage History</a>
-  <a mat-list-item routerLinkActive="list-item-active"
-    routerLink="/analysis"><mat-icon>query_stats</mat-icon>Analysis</a>
-
-</mat-nav-list>
+  <!-- Navigation -->
+  <div class="nav-list">
+    <a class="nav-item" routerLinkActive="nav-item--active"
+       routerLink="/dashboard">
+      <mat-icon class="nav-icon">dashboard</mat-icon>
+      @if (!collapsed) {
+        <span class="nav-label">Dashboard</span>
+      }
+    </a>
+    <a class="nav-item" routerLinkActive="nav-item--active"
+       routerLink="/portifolio">
+      <mat-icon class="nav-icon">list_alt</mat-icon>
+      @if (!collapsed) {
+        <span class="nav-label">Portfolio</span>
+      }
+    </a>
+    <a class="nav-item" routerLinkActive="nav-item--active"
+       routerLink="/brokerage-history">
+      <mat-icon class="nav-icon">timeline</mat-icon>
+      @if (!collapsed) {
+        <span class="nav-label">Brokerage History</span>
+      }
+    </a>
+    <a class="nav-item" routerLinkActive="nav-item--active"
+       routerLink="/analysis">
+      <mat-icon class="nav-icon">query_stats</mat-icon>
+      @if (!collapsed) {
+        <span class="nav-label">Analysis</span>
+      }
+    </a>
+  </div>
+</nav>

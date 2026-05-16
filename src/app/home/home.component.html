@@ -1,8 +1,13 @@
-<mat-drawer-container class="example-container">
-  <mat-drawer #drawer [mode]="'side'" opened>
-    <app-side-bar></app-side-bar>
-  </mat-drawer>
-  <mat-drawer-content [style]="'height: 84dvh'">
+<div class="shell-layout" [class.sidebar-collapsed]="layout.sidebarCollapsed()" [class.is-mobile]="isMobile()">
+  @if (isMobile()) {
+    @if (!layout.sidebarCollapsed()) {
+      <div class="shell-overlay" (click)="layout.toggleSidebar()"></div>
+    }
+  }
+  <aside class="shell-sidebar">
+    <app-side-bar [collapsed]="!isMobile() && layout.sidebarCollapsed()" />
+  </aside>
+  <main class="shell-content">
     <router-outlet></router-outlet>
-  </mat-drawer-content>
-</mat-drawer-container>
+  </main>
+</div>
