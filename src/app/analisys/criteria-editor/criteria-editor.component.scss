@@ -1,16 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons+Outlined');
 
-$primary-color: #673ab7;
-$primary-hover: #5e35a0;
-$text-dark: #0f172a;
-$text-body: #475569;
-$text-muted: #94a3b8;
-$border-color: #e2e8f0;
-$border-soft: #f1f5f9;
-$bg-main: #f8fafc;
-$bg-card: #ffffff;
-$bg-header: #f8fafc;
+$primary-color: var(--accent);
+$primary-hover: var(--accent-light);
+$text-dark: var(--text-main);
+$text-body: var(--text-main);
+$text-muted: var(--text-muted);
+$border-color: var(--border-color);
+$border-soft: var(--border-color);
+$bg-main: var(--bg-primary);
+$bg-card: var(--bg-secondary);
+$bg-header: var(--bg-surface);
 
 .content-container {
   padding: 0 16px;
@@ -96,7 +96,7 @@ $bg-header: #f8fafc;
   &:hover {
     background: $primary-hover;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(103, 58, 183, 0.3);
+    box-shadow: 0 4px 12px var(--accent-muted);
   }
 
   &:active {
@@ -182,17 +182,17 @@ $bg-header: #f8fafc;
 
     &:focus:not(:disabled) {
       border-color: $primary-color;
-      box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
+      box-shadow: 0 0 0 2px var(--accent-muted);
     }
 
     &:disabled {
-      background-color: #f1f5f9;
-      color: #94a3b8;
+      background-color: var(--bg-surface);
+      color: var(--text-muted);
       cursor: not-allowed;
     }
 
     &::placeholder {
-      color: #cbd5e1;
+      color: var(--text-muted);
     }
   }
 
@@ -277,7 +277,7 @@ $bg-header: #f8fafc;
       background: $primary-color;
       color: white;
       border: none;
-      box-shadow: 0 4px 6px -1px rgba($primary-color, 0.2);
+      box-shadow: 0 4px 6px -1px var(--accent-muted);
 
       &:hover:not(:disabled) {
         background: $primary-hover;

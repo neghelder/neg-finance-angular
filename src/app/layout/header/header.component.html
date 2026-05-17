@@ -7,6 +7,10 @@
   </div>
 
   <div class="header-right">
+    <button class="header-icon-btn" aria-label="Toggle theme" (click)="onToggleTheme()">
+      <mat-icon>{{ themeService.activeTheme() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+    </button>
+
     @if (hasValidSession()) {
       <button class="header-icon-btn" aria-label="Notifications">
         <mat-icon>notifications_none</mat-icon>

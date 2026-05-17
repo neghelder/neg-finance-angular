@@ -6,6 +6,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { AuthService } from '../../auth/auth.service';
 import { LayoutService } from '../layout.service';
+import { ThemeService } from '../theme.service';
 
 @Component({
   selector: 'app-header',
@@ -23,10 +24,15 @@ import { LayoutService } from '../layout.service';
 export class HeaderComponent {
   private auth = inject(AuthService);
   private layout = inject(LayoutService);
+  themeService = inject(ThemeService);
 
   hasValidSession = signal(this.auth.hasCurrentSession());
 
   onToggleMenu(): void {
     this.layout.toggleSidebar();
+  }
+
+  onToggleTheme(): void {
+    this.themeService.toggleTheme();
   }
 }
