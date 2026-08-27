@@ -10,6 +10,8 @@ import { AssetTypeSelectorComponent, AssetTypeOption } from '../shared/asset-typ
 import { LoadingBarComponent } from '../shared/loading-bar/loading-bar.component';
 import { CriteriaConfig } from './models/criteria';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { FiagroReportsComponent } from './fiagro-reports/fiagro-reports.component';
 
 
 @Component({
@@ -21,7 +23,9 @@ import { RouterModule } from '@angular/router';
     GridComponent,
     AssetTypeSelectorComponent,
     LoadingBarComponent,
-    RouterModule
+    RouterModule,
+    FormsModule,
+    FiagroReportsComponent
   ],
   templateUrl: './analisys.component.html',
   styleUrl: './analisys.component.scss'
@@ -29,17 +33,44 @@ import { RouterModule } from '@angular/router';
 export class AnalisysComponent implements OnInit {
 
   assetTypeOptions: AssetTypeOption[] = [
-    { label: 'BR Shares', value: 'SHARE' },
-    { label: 'BR REITs', value: 'REIT' }
+    { label: 'BR Shares', value: 'BR_SHARE' },
+    { label: 'BR REITs', value: 'BR_REIT' },
+    { label: 'BR FIAGROs', value: 'BR_FIAGRO' },
+    { label: 'BR BDRs', value: 'BR_BDR' },
+    { label: 'USA Shares', value: 'USA_SHARE' },
+    { label: 'USA REITs', value: 'USA_REIT' },
+    { label: 'USA ETFs', value: 'USA_ETF' }
   ];
 
   activeCriteria: CriteriaConfig | null = null;
 
+  parseAssetSelection(value: string): { origin: string; type: string } {
+    if (value && value.includes('_')) {
+      const parts = value.split('_');
+      return { origin: parts[0], type: parts[1] };
+    }
+    // Fallback for simple values (for tests and backwards compatibility)
+    let origin = 'BR';
+    if (value === 'ETF') {
+      origin = 'USA';
+    }
+    return { origin, type: value };
+  }
+
+  get selectedType(): string {
+    const { type } = this.parseAssetSelection(this.selectedTab);
+    return type;
+  }
+
+  get selectedOrigin(): string {
+    const { origin } = this.parseAssetSelection(this.selectedTab);
+    return origin;
+  }
+
   failsCriteria(field: string, value: number): boolean {
     if (!this.activeCriteria || value === null || value === undefined) return false;
-    const origin = 'BR';
-    const assetType = this.selectedTab; // 'SHARES' or 'REITS'
-    const criteria = this.activeCriteria[assetType]?.[origin]?.[field];
+    const { origin, type } = this.parseAssetSelection(this.selectedTab);
+    const criteria = this.activeCriteria[type]?.[origin]?.[field];
     if (!criteria) return false;
 
     if ((criteria.min !== undefined && value < criteria.min) ||
@@ -127,6 +158,42 @@ export class AnalisysComponent implements OnInit {
     { field: 'to_equalize', headerName: 'Equalizar', width: 100 }
   ];
 
+  colEtfDefs: ColDef[] = [
+    { field: 'ticker', headerName: 'Papel', width: 100, pinned: 'left' },
+    { field: 'price', headerName: 'Preço', width: 100, cellRenderer: this.currencyFormatter },
+    { field: 'dy', headerName: 'DY', width: 100, cellRenderer: this.percentageRenderer, cellStyle: this.cellStyleFn },
+    { field: 'expenseRatio', headerName: 'Taxa Adm', width: 100, cellRenderer: this.percentageRenderer, cellStyle: this.cellStyleFn },
+    { field: 'navPrice', headerName: 'NAV', width: 100, cellRenderer: this.currencyFormatter },
+    { field: 'totalAssets', headerName: 'Patr.', width: 100, cellRenderer: this.largeNumberFormatter },
+    { field: 'fiftyTwoWeekLow', headerName: 'Mín 52S', width: 100, cellRenderer: this.currencyFormatter },
+    { field: 'fiftyTwoWeekHigh', headerName: 'Máx 52S', width: 100, cellRenderer: this.currencyFormatter },
+    { field: 'averageVolume', headerName: 'Vol. Médio', width: 100, cellRenderer: this.largeNumberFormatter },
+    { field: 'mean_price', headerName: 'P. Médio', width: 100, cellRenderer: this.currencyFormatter },
+    { field: 'to_buy', headerName: 'Comprar', width: 100 },
+    { field: 'to_equalize', headerName: 'Equalizar', width: 100 }
+  ];
+
+  colBdrDefs: ColDef[] = this.colDefs;
+
+  colFiagroDefs: ColDef[] = [
+    { field: 'ticker', headerName: 'Papel', width: 100, pinned: 'left' },
+    { field: 'price', headerName: 'Preço', width: 100, cellRenderer: this.currencyFormatter },
+    { field: 'price_limit', headerName: 'P. Limite', width: 100, cellRenderer: this.currencyFormatter },
+    { field: 'pvp', headerName: 'P/VP', width: 100, cellStyle: this.cellStyleFn },
+    { field: 'dy', headerName: 'DY', width: 100, cellStyle: this.cellStyleFn },
+    { field: 'last_div', headerName: 'Last DY', width: 100, cellRenderer: this.currencyFormatter },
+    { field: 'liqday', headerName: 'Liq. Diária', width: 100, cellRenderer: this.largeNumberFormatter, cellStyle: this.cellStyleFn },
+    { field: 'cd3y', headerName: 'CD3Y', width: 100, cellStyle: this.cellStyleFn },
+    { field: 'c3y', headerName: 'C3Y', width: 100, cellStyle: this.cellStyleFn },
+    { field: 'patr', headerName: 'Patr', width: 100, cellRenderer: this.largeNumberFormatter, cellStyle: this.cellStyleFn },
+    { field: 'shareholders', headerName: 'Cotistas', width: 100, cellRenderer: this.largeNumberFormatter, cellStyle: this.cellStyleFn },
+    { field: 'management', headerName: 'Gestão', width: 100 },
+    { field: 'grades', headerName: 'Nota', width: 100 },
+    { field: 'mean_price', headerName: 'P. Médio', width: 100, cellRenderer: this.currencyFormatter },
+    { field: 'to_buy', headerName: 'Comprar', width: 100 },
+    { field: 'to_equalize', headerName: 'Equalizar', width: 100 }
+  ];
+
   loading = false;
   analysisSets: AnalysisSet<any>[] = [];
   analysisSets$: Observable<AnalysisSet<any>[]>;
@@ -139,6 +206,16 @@ export class AnalisysComponent implements OnInit {
   selectedSetIndex: number = 0;
   selectedSetData: any[] = [];
 
+  watchlist: string[] = [];
+  tickerInput: string = '';
+
+  get currentCollection(): string {
+    const { type } = this.parseAssetSelection(this.selectedTab);
+    if (type === 'ETF') return 'USA_ETFS';
+    if (type === 'BDR') return 'BR_BDRS';
+    return '';
+  }
+
   constructor(private analysisService: AnalisysService) { }
 
   ngOnInit(): void {
@@ -147,19 +224,45 @@ export class AnalisysComponent implements OnInit {
     });
 
     this.analysisSets$ = this.selectedAssetType$.pipe(
-      tap(type => {
+      tap(selection => {
         setTimeout(() => {
-          this.selectedTab = type;
+          let normalized = selection;
+          if (selection === 'SHARE') normalized = 'BR_SHARE';
+          else if (selection === 'REIT') normalized = 'BR_REIT';
+          else if (selection === 'BDR') normalized = 'BR_BDR';
+          else if (selection === 'ETF') normalized = 'USA_ETF';
+
+          this.selectedTab = normalized;
           this.loading = true;
-          this.currentColDefs = type === 'SHARE' ? this.colDefs : this.colReitsDefs;
+          const { origin, type } = this.parseAssetSelection(normalized);
+          if (type === 'SHARE') {
+            this.currentColDefs = this.colDefs;
+          } else if (type === 'REIT') {
+            this.currentColDefs = this.colReitsDefs;
+          } else if (type === 'FIAGRO') {
+            this.currentColDefs = this.colFiagroDefs;
+          } else if (type === 'ETF') {
+            this.currentColDefs = this.colEtfDefs;
+          } else if (type === 'BDR') {
+            this.currentColDefs = this.colBdrDefs;
+          }
+          this.loadWatchlist();
         });
       }),
-      switchMap(type => {
+      switchMap(selection => {
+        const { origin, type } = this.parseAssetSelection(selection);
         if (type === 'SHARE') {
-          return this.analysisService.shareAnalysis$;
-        } else {
-          return this.analysisService.reitAnalysis$;
+          return this.analysisService.getShareAnalysis ? this.analysisService.getShareAnalysis(origin) : this.analysisService.shareAnalysis$;
+        } else if (type === 'REIT') {
+          return this.analysisService.getReitAnalysis ? this.analysisService.getReitAnalysis(origin) : this.analysisService.reitAnalysis$;
+        } else if (type === 'FIAGRO') {
+          return this.analysisService.getFiagroAnalysis(origin);
+        } else if (type === 'ETF') {
+          return this.analysisService.getEtfAnalysis ? this.analysisService.getEtfAnalysis(origin) : this.analysisService.etfAnalysis$;
+        } else if (type === 'BDR') {
+          return this.analysisService.getBdrAnalysis ? this.analysisService.getBdrAnalysis(origin) : this.analysisService.bdrAnalysis$;
         }
+        return [];
       }),
       tap(sets => {
         setTimeout(() => {
@@ -184,10 +287,43 @@ export class AnalisysComponent implements OnInit {
     this.selectedAssetType$.next(value);
   }
 
-  onSetSelected(index: number): void {
+  onSetSelected(index: number) {
     this.selectedSetIndex = index;
-    this.selectedSetData = this.analysisSets[index]?.analisys || [];
+    if (this.analysisSets.length > index && index >= 0) {
+      this.selectedSetData = this.analysisSets[index].analisys;
+    } else {
+      this.selectedSetData = [];
+    }
   }
 
+  loadWatchlist() {
+    const coll = this.currentCollection;
+    if (coll) {
+      this.analysisService.getWatchlist(coll).subscribe(w => this.watchlist = w);
+    } else {
+      this.watchlist = [];
+    }
+  }
+
+  addToWatchlist() {
+    const coll = this.currentCollection;
+    if (coll && this.tickerInput) {
+      this.analysisService.addToWatchlist(this.tickerInput.toUpperCase(), coll).subscribe(() => {
+        this.tickerInput = '';
+        this.loadWatchlist();
+        this.selectedAssetType$.next(this.selectedTab); // Reload analysis
+      });
+    }
+  }
+
+  removeFromWatchlist(ticker: string) {
+    const coll = this.currentCollection;
+    if (coll) {
+      this.analysisService.removeFromWatchlist(ticker, coll).subscribe(() => {
+        this.loadWatchlist();
+        this.selectedAssetType$.next(this.selectedTab); // Reload analysis
+      });
+    }
+  }
 
 }

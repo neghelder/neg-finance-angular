@@ -20,6 +20,9 @@ class MockAssetTypeSelectorComponent { @Input() options: any; @Input() selectedV
 @Component({ selector: 'app-loading-bar', standalone: true, template: '' })
 class MockLoadingBarComponent { @Input() loading: boolean = false; }
 
+@Component({ selector: 'app-fiagro-reports', standalone: true, template: '' })
+class MockFiagroReportsComponent { }
+
 describe('AnalisysComponent', () => {
   let component: AnalisysComponent;
   let fixture: ComponentFixture<AnalisysComponent>;
@@ -33,19 +36,25 @@ describe('AnalisysComponent', () => {
     { name: 'analysis_br_reits_yield', analisys: [{ ticker: 'HGLG11', price: 160.0, grades: 9 }] }
   ];
 
+  const mockFiagroSets: AnalysisSet<any>[] = [
+    { name: 'analysis_br_fiagros_agro', analisys: [{ ticker: 'KFOF11', price: 9.5, grades: 7 }] }
+  ];
+
   const analysisServiceMock = {
     shareAnalysis$: of(mockShareSets),
     reitAnalysis$: of(mockReitSets),
-    getCriteria: () => of({})
+    getCriteria: () => of({}),
+    getFiagroAnalysis: jest.fn(() => of(mockFiagroSets))
   };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
     await TestBed.configureTestingModule({
       imports: [AnalisysComponent],
     })
     .overrideComponent(AnalisysComponent, {
       set: {
-        imports: [CommonModule, MockGridComponent, MockRecommendationsComponent, MockAssetTypeSelectorComponent, MockLoadingBarComponent],
+        imports: [CommonModule, MockGridComponent, MockRecommendationsComponent, MockAssetTypeSelectorComponent, MockLoadingBarComponent, MockFiagroReportsComponent],
         providers: [
           { provide: AnalisysService, useValue: analysisServiceMock }
         ]
@@ -217,5 +226,128 @@ describe('AnalisysComponent', () => {
       const result = component.cellStyleFn({ colDef: { field: 'pl' }, value: 5 });
       expect(result).toEqual({ color: 'green' });
     });
+  });
+
+  describe('compound selection and origin support', () => {
+    beforeEach(() => {
+      component.activeCriteria = {
+        'SHARE': {
+          'BR': {
+            'pl': { min: 0, max: 10, unit: 'number' }
+          },
+          'USA': {
+            'pl': { min: 0, max: 15, unit: 'number' }
+          }
+        }
+      };
+    });
+
+    it('should parse simple and compound selections correctly', () => {
+      expect(component.parseAssetSelection('BR_SHARE')).toEqual({ origin: 'BR', type: 'SHARE' });
+      expect(component.parseAssetSelection('USA_REIT')).toEqual({ origin: 'USA', type: 'REIT' });
+      expect(component.parseAssetSelection('SHARE')).toEqual({ origin: 'BR', type: 'SHARE' });
+      expect(component.parseAssetSelection('ETF')).toEqual({ origin: 'USA', type: 'ETF' });
+    });
+
+    it('should parse BR_FIAGRO correctly', () => {
+      expect(component.parseAssetSelection('BR_FIAGRO')).toEqual({ origin: 'BR', type: 'FIAGRO' });
+    });
+
+    it('should evaluate failsCriteria using USA origin criteria', () => {
+      component.selectedTab = 'USA_SHARE';
+      // For USA_SHARE, pl max is 15. Value 12 should pass.
+      expect(component.failsCriteria('pl', 12)).toBe(false);
+      // Value 18 should fail.
+      expect(component.failsCriteria('pl', 18)).toBe(true);
+    });
+
+    it('should return correct selectedType and selectedOrigin getters', () => {
+      component.selectedTab = 'USA_REIT';
+      expect(component.selectedType).toBe('REIT');
+      expect(component.selectedOrigin).toBe('USA');
+    });
+
+    it('should return FIAGRO type and BR origin for BR_FIAGRO', () => {
+      component.selectedTab = 'BR_FIAGRO';
+      expect(component.selectedType).toBe('FIAGRO');
+      expect(component.selectedOrigin).toBe('BR');
+    });
+  });
+
+  describe('assetTypeOptions includes BR_FIAGRO', () => {
+    it('should include BR FIAGROs option', () => {
+      const fiagro = component.assetTypeOptions.find(o => o.value === 'BR_FIAGRO');
+      expect(fiagro).toBeDefined();
+      expect(fiagro?.label).toBe('BR FIAGROs');
+    });
+  });
+
+  describe('FIAGRO column defs', () => {
+    it('should have colFiagroDefs defined', () => {
+      expect(component.colFiagroDefs).toBeDefined();
+      expect(component.colFiagroDefs.length).toBeGreaterThan(0);
+    });
+
+    it('should include ticker as pinned left column', () => {
+      const tickerCol = component.colFiagroDefs.find(c => c.field === 'ticker');
+      expect(tickerCol).toBeDefined();
+      expect(tickerCol?.pinned).toBe('left');
+    });
+
+    it('should include all required FIAGRO fields', () => {
+      const fields = component.colFiagroDefs.map(c => c.field);
+      expect(fields).toContain('ticker');
+      expect(fields).toContain('price');
+      expect(fields).toContain('price_limit');
+      expect(fields).toContain('pvp');
+      expect(fields).toContain('dy');
+      expect(fields).toContain('last_div');
+      expect(fields).toContain('liqday');
+      expect(fields).toContain('cd3y');
+      expect(fields).toContain('c3y');
+      expect(fields).toContain('patr');
+      expect(fields).toContain('shareholders');
+      expect(fields).toContain('management');
+      expect(fields).toContain('grades');
+      expect(fields).toContain('mean_price');
+      expect(fields).toContain('to_buy');
+      expect(fields).toContain('to_equalize');
+    });
+  });
+
+  describe('FIAGRO dispatch in switchMap', () => {
+    it('should use FIAGRO column defs when BR_FIAGRO selected', fakeAsync(() => {
+      component.ngOnInit();
+      component.analysisSets$.subscribe();
+      tick();
+
+      component.onAssetTypeChange('BR_FIAGRO');
+      tick();
+
+      expect(component.currentColDefs).toBe(component.colFiagroDefs);
+    }));
+
+    it('should call getFiagroAnalysis when BR_FIAGRO selected', fakeAsync(() => {
+      component.ngOnInit();
+      component.analysisSets$.subscribe();
+      tick();
+
+      component.onAssetTypeChange('BR_FIAGRO');
+      tick();
+
+      expect(analysisServiceMock.getFiagroAnalysis).toHaveBeenCalledWith('BR');
+    }));
+
+    it('should load FIAGRO sets when BR_FIAGRO selected', fakeAsync(() => {
+      component.ngOnInit();
+      component.analysisSets$.subscribe();
+      tick();
+
+      component.onAssetTypeChange('BR_FIAGRO');
+      tick();
+
+      expect(component.analysisSets).toEqual(mockFiagroSets);
+      expect(component.selectedSetData).toEqual(mockFiagroSets[0].analisys);
+    }));
   });
 });
