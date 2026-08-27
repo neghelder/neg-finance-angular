@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
@@ -19,5 +19,5 @@ import { RouterModule } from '@angular/router';
   styleUrl: './side-bar.component.scss'
 })
 export class SideBarComponent {
-
+  @Input() collapsed = false;
 }

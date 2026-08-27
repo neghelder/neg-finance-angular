@@ -1,17 +1,42 @@
-<mat-toolbar>
-  <button mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon" (click)="toggleMenu()">
-    <mat-icon>menu</mat-icon>
-  </button>
-  <h1>Ng Finance Management System</h1>
-  <span class="example-spacer"></span>
-  @if(hasValidSession) {
-  <button mat-icon-button class="example-icon favorite-icon" aria-label="Example icon-button with heart icon">
-    <mat-icon>favorite</mat-icon>
-  </button>
-  <button mat-icon-button class="example-icon" aria-label="Example icon-button with share icon">
-    <mat-icon>share</mat-icon>
-  </button>
-  } @else {
-  <button mat-raised-button color="primary">Sign in</button>
-  }
-</mat-toolbar>
+<header class="app-header">
+  <div class="header-left">
+    <button class="header-icon-btn" aria-label="Toggle sidebar" (click)="onToggleMenu()">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <h1 class="header-title">NegFinance</h1>
+  </div>
+
+  <div class="header-right">
+    <button class="header-icon-btn" aria-label="Toggle theme" (click)="onToggleTheme()">
+      <mat-icon>{{ themeService.activeTheme() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+    </button>
+
+    @if (hasValidSession()) {
+      <button class="header-icon-btn" aria-label="Notifications">
+        <mat-icon>notifications_none</mat-icon>
+      </button>
+
+      <button class="header-avatar-btn" [matMenuTriggerFor]="userMenu" aria-label="User menu">
+        <img src="../../../assets/user-photo.jpg" alt="User avatar" class="header-avatar" />
+      </button>
+
+      <mat-menu #userMenu="matMenu" class="header-user-menu">
+        <button mat-menu-item>
+          <mat-icon>person_outline</mat-icon>
+          <span>Profile</span>
+        </button>
+        <button mat-menu-item>
+          <mat-icon>settings</mat-icon>
+          <span>Settings</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item>
+          <mat-icon>logout</mat-icon>
+          <span>Sign out</span>
+        </button>
+      </mat-menu>
+    } @else {
+      <button class="header-signin-btn">Sign in</button>
+    }
+  </div>
+</header>

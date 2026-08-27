@@ -1,11 +1,11 @@
-$primary: #000666;
-$primary-container: #1a237e;
-$surface-container-lowest: #ffffff;
-$surface-container-highest: #e0e3e6;
-$outline: #767683;
-$secondary: #4c616c;
-$on-surface: #191c1e;
-$on-surface-variant: #454652;
+$primary: var(--accent);
+$primary-container: var(--accent-light);
+$surface-container-lowest: var(--bg-secondary);
+$surface-container-highest: var(--bg-surface);
+$outline: var(--border-color);
+$secondary: var(--text-muted);
+$on-surface: var(--text-main);
+$on-surface-variant: var(--text-muted);
 
 // The material dialog container has its own padding we want to override if possible,
 // but since we can't style host directly without ::ng-deep, we'll just style our container richly.
@@ -114,13 +114,13 @@ $on-surface-variant: #454652;
   box-sizing: border-box;
 
   &::placeholder {
-    color: rgba($outline, 0.6);
+    color: var(--text-muted);
   }
 
   &:focus {
     background-color: $surface-container-lowest;
-    border-color: rgba($primary, 0.2);
-    box-shadow: 0 0 0 2px rgba($primary, 0.2);
+    border-color: var(--accent-muted);
+    box-shadow: 0 0 0 2px var(--accent-muted);
   }
 }
 
@@ -176,7 +176,7 @@ $on-surface-variant: #454652;
     transition: all 0.2s;
 
     &:hover {
-      background-color: rgba($primary, 0.05);
+      background-color: var(--bg-active);
       color: $primary;
     }
 
@@ -189,8 +189,8 @@ $on-surface-variant: #454652;
 .editorial-box {
   margin-top: 32px;
   padding: 16px;
-  background-color: rgba($primary, 0.05);
-  border: 1px solid rgba($primary, 0.1);
+  background-color: var(--bg-active);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   display: flex;
   gap: 16px;
@@ -200,7 +200,7 @@ $on-surface-variant: #454652;
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: rgba($primary, 0.1);
+    background-color: var(--bg-active);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -218,14 +218,14 @@ $on-surface-variant: #454652;
     font-size: 12px;
     font-weight: 500;
     line-height: 1.6;
-    color: #354a53; // on-secondary-fixed-variant
+    color: var(--text-muted); // on-secondary-fixed-variant
     margin: 0;
   }
 }
 
 .dialog-footer {
   padding: 24px 32px;
-  background-color: rgba(#f2f4f7, 0.3); // surface-container-low / 30%
+  background-color: var(--bg-surface);
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -262,7 +262,7 @@ $on-surface-variant: #454652;
   font-size: 14px;
   color: #ffffff;
   cursor: pointer;
-  box-shadow: 0 4px 14px 0 rgba($primary, 0.2);
+  box-shadow: 0 4px 14px 0 var(--accent-muted);
   transition: all 0.2s;
 
   mat-icon {
@@ -273,7 +273,7 @@ $on-surface-variant: #454652;
 
   &:hover:not(:disabled) {
     transform: scale(1.02);
-    box-shadow: 0 6px 20px rgba($primary, 0.25);
+    box-shadow: 0 6px 20px var(--accent-muted);
   }
 
   &:active:not(:disabled) {
@@ -299,7 +299,7 @@ $on-surface-variant: #454652;
     color: $on-surface;
     
     &:hover, &.mat-mdc-option-active {
-      background-color: rgba($primary, 0.05) !important;
+      background-color: var(--bg-active) !important;
     }
   }
 }

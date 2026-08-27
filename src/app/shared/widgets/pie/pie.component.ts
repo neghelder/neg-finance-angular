@@ -1,8 +1,9 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, inject, effect } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import * as Highcharts from 'highcharts';
 import { HighchartsChartModule } from 'highcharts-angular';
 import HC_exporting from 'highcharts/modules/exporting';
+import { ThemeService } from '../../../layout/theme.service';
 
 @Component({
   selector: 'app-widget-pie',
@@ -23,30 +24,54 @@ export class PieComponent implements OnInit {
   Highcharts = Highcharts;
   chartOptions = {};
 
-  constructor() { }
+  themeService = inject(ThemeService);
+
+  constructor() {
+    effect(() => {
+      const theme = this.themeService.activeTheme();
+      this.updateChartOptions(theme);
+    });
+  }
 
   ngOnInit() {
+    this.updateChartOptions(this.themeService.activeTheme());
+    
+    // HC_exporting(Highcharts);
+
+    setTimeout(() => {
+      window.dispatchEvent(
+        new Event('resize')
+      );
+    }, 300);
+  }
+
+  private updateChartOptions(theme: 'light' | 'dark'): void {
+    const textColor = theme === 'dark' ? '#f0f2f5' : '#1e293b';
+    
     this.chartOptions = {
       chart: {
-        type: 'pie'
+        type: 'pie',
+        backgroundColor: 'transparent'
       },
       title: {
-        text: this.title
+        text: this.title,
+        style: { color: textColor }
       },
-      // tooltip: {
-      //   valueSuffix: '%'
-      // },
       subtitle: {
-        text: this.subtitle
+        text: this.subtitle,
+        style: { color: textColor }
       },
       plotOptions: {
+        pie: {
+          borderWidth: theme === 'dark' ? 0 : 1
+        },
         series: {
           allowPointSelect: true,
           cursor: 'pointer',
           dataLabels: {
-            // enabled: true,
-            format: '<span style="font-size: 1.2em"><b>{point.name}</b></span><br>' +
-                '<span style="opacity: 0.6">{point.percentage:.1f} %</span>',
+            format: '<span style="font-size: 1.2em; color: ' + textColor + '"><b>{point.name}</b></span><br>' +
+                '<span style="opacity: 0.6; color: ' + textColor + '">{point.percentage:.1f} %</span>',
+            style: { color: textColor, textOutline: 'none' }
           }
         }
       },
@@ -58,13 +83,5 @@ export class PieComponent implements OnInit {
         }
       ]
     };
-    
-    // HC_exporting(Highcharts);
-
-    setTimeout(() => {
-      window.dispatchEvent(
-        new Event('resize')
-      );
-    }, 300);
   }
 }

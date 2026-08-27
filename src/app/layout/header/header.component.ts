@@ -1,9 +1,12 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { AuthService } from '../../auth/auth.service';
+import { LayoutService } from '../layout.service';
+import { ThemeService } from '../theme.service';
 
 @Component({
   selector: 'app-header',
@@ -13,22 +16,23 @@ import { AuthService } from '../../auth/auth.service';
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
-  ],
-  providers: [
-    EventEmitter
+    MatDividerModule,
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
-export class HeaderComponent implements OnInit{
-  hasValidSession: boolean = false;
-  @Output() hideSidebar = new EventEmitter();
-  ngOnInit(): void {
-    this.hasValidSession = this.auth.hasCurrentSession();
+export class HeaderComponent {
+  private auth = inject(AuthService);
+  private layout = inject(LayoutService);
+  themeService = inject(ThemeService);
+
+  hasValidSession = signal(this.auth.hasCurrentSession());
+
+  onToggleMenu(): void {
+    this.layout.toggleSidebar();
   }
 
-  toggleMenu(): void {
-    this.hideSidebar.emit({});
+  onToggleTheme(): void {
+    this.themeService.toggleTheme();
   }
-  constructor(private auth: AuthService) {}
 }

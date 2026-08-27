@@ -1,15 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HeaderComponent } from './header.component';
 import { AuthService } from '../../auth/auth.service';
-import { EventEmitter } from '@angular/core';
+import { LayoutService } from '../layout.service';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;
   let fixture: ComponentFixture<HeaderComponent>;
   let authService: jest.Mocked<AuthService>;
+  let layoutService: LayoutService;
 
   beforeEach(async () => {
     authService = { hasCurrentSession: jest.fn() } as any;
+    layoutService = new LayoutService();
 
     await TestBed.configureTestingModule({
       imports: [HeaderComponent],
@@ -18,7 +20,7 @@ describe('HeaderComponent', () => {
       set: {
         providers: [
           { provide: AuthService, useValue: authService },
-          { provide: EventEmitter, useValue: new EventEmitter() }
+          { provide: LayoutService, useValue: layoutService },
         ]
       }
     })
@@ -33,30 +35,32 @@ describe('HeaderComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should set hasValidSession to true when session exists', () => {
+  it('should set hasValidSession signal to true when session exists', () => {
     authService.hasCurrentSession.mockReturnValue(true);
     fixture = TestBed.createComponent(HeaderComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    expect(component.hasValidSession).toBe(true);
+    expect(component.hasValidSession()).toBe(true);
   });
 
-  it('should set hasValidSession to false when no session exists', () => {
+  it('should set hasValidSession signal to false when no session exists', () => {
     authService.hasCurrentSession.mockReturnValue(false);
     fixture = TestBed.createComponent(HeaderComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    expect(component.hasValidSession).toBe(false);
+    expect(component.hasValidSession()).toBe(false);
   });
 
-  it('should emit hideSidebar event when toggleMenu is called', () => {
+  it('should toggle sidebar via LayoutService when onToggleMenu is called', () => {
     authService.hasCurrentSession.mockReturnValue(true);
     fixture = TestBed.createComponent(HeaderComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
 
-    const spy = jest.spyOn(component.hideSidebar, 'emit');
-    component.toggleMenu();
-    expect(spy).toHaveBeenCalledWith({});
+    expect(layoutService.sidebarCollapsed()).toBe(false);
+    component.onToggleMenu();
+    expect(layoutService.sidebarCollapsed()).toBe(true);
+    component.onToggleMenu();
+    expect(layoutService.sidebarCollapsed()).toBe(false);
   });
 });

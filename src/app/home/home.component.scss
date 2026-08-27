@@ -1,16 +1,73 @@
 :host {
+  display: block;
+  height: calc(100dvh - var(--header-height));
+}
+
+/* ── Shell Layout ── */
+
+.shell-layout {
   display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-mat-drawer {
-  width: 200px;
-}
-
-mat-drawer-container {
   height: 100%;
 }
 
-mat-drawer-content {
-  padding: 20px;
+/* ── Sidebar ── */
+
+.shell-sidebar {
+  width: var(--sidebar-width-expanded);
+  min-width: var(--sidebar-width-expanded);
+  height: 100%;
+  background: var(--shell-bg-primary);
+  border-right: 1px solid var(--shell-border);
+  transition: width var(--shell-transition-slow),
+              min-width var(--shell-transition-slow);
+  overflow: hidden;
+}
+
+.sidebar-collapsed .shell-sidebar {
+  width: var(--sidebar-width-collapsed);
+  min-width: var(--sidebar-width-collapsed);
+}
+
+/* ── Content ── */
+
+.shell-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--shell-spacing-xl);
+  background: var(--bg-primary);
+}
+
+/* ── Mobile: Overlay Mode ── */
+
+.shell-overlay {
+  position: fixed;
+  inset: 0;
+  top: var(--header-height);
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  animation: fadeIn 200ms ease;
+}
+
+.is-mobile .shell-sidebar {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  bottom: 0;
+  z-index: 100;
+  width: var(--sidebar-width-expanded);
+  min-width: var(--sidebar-width-expanded);
+  box-shadow: var(--shell-shadow-lg);
+  transform: translateX(0);
+  transition: transform var(--shell-transition-slow);
+}
+
+.is-mobile.sidebar-collapsed .shell-sidebar {
+  transform: translateX(-100%);
+  width: var(--sidebar-width-expanded);
+  min-width: var(--sidebar-width-expanded);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

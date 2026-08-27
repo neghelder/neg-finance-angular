@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject, computed } from '@angular/core';
 import { AgGridAngular } from 'ag-grid-angular';
 import { 
   ColDef, 
@@ -9,6 +9,7 @@ import {
 } from 'ag-grid-community'; // Column Definition Type Interface
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
+import { ThemeService } from '../../../layout/theme.service';
 
 @Component({
   selector: 'app-widget-grid',
@@ -25,7 +26,8 @@ export class GridComponent {
   @Output() gridReady = new EventEmitter();
   @Output() rowSelected = new EventEmitter();
 
-  themeClass = "ag-theme-quartz";
+  themeService = inject(ThemeService);
+  themeClass = computed(() => this.themeService.activeTheme() === 'dark' ? 'ag-theme-quartz-dark' : 'ag-theme-quartz');
   
   private gridApi: GridApi;
 
