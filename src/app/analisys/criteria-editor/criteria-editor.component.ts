@@ -19,7 +19,8 @@ export class CriteriaEditorComponent implements OnInit {
 
   assetTypeOptions: AssetTypeOption[] = [
     { label: 'Shares', value: 'SHARE' },
-    { label: 'REITs', value: 'REIT' }
+    { label: 'REITs', value: 'REIT' },
+    { label: 'FIAGROs', value: 'FIAGRO' }
   ];
   selectedAssetType: string = 'SHARE';
 

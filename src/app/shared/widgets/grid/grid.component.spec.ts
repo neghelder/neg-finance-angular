@@ -41,7 +41,7 @@ describe('GridComponent', () => {
   });
 
   it('should use ag-theme-quartz', () => {
-    expect(component.themeClass).toBe('ag-theme-quartz');
+    expect(component.themeClass()).toBe('ag-theme-quartz');
   });
 
   describe('onRowSelected', () => {
