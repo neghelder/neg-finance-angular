@@ -5,8 +5,11 @@ import { Recommendation } from './recommendations/recommendation';
 import { Stock } from './models/stock';
 import { AnalysisSet } from './models/analysisSet';
 import { Reit } from './models/reit';
+import { Fiagro } from './models/fiagro';
+import { FiagroReportsResponse } from './models/fiagro-report';
 import { CriteriaConfig } from './models/criteria';
-
+import { Etf } from './models/etf';
+import { Bdr } from './models/bdr';
 
 
 @Injectable({
@@ -26,13 +29,58 @@ export class AnalisysService {
       );
   }
 
-  shareAnalysis$ = this.http.get<AnalysisSet<Stock>[]>(this.baseUrl + `/shares?origin=BR`, this.httpOptions).pipe(
-    catchError(this.handleError)
-  )
+  getShareAnalysis(origin: string = 'BR'): Observable<AnalysisSet<Stock>[]> {
+    return this.http.get<AnalysisSet<Stock>[]>(this.baseUrl + `/shares?origin=${origin}`, this.httpOptions).pipe(
+      catchError(this.handleError)
+    );
+  }
 
-  reitAnalysis$ = this.http.get<AnalysisSet<Reit>[]>(this.baseUrl + `/reits?origin=BR`, this.httpOptions).pipe(
-    catchError(this.handleError)
-  )
+  getReitAnalysis(origin: string = 'BR'): Observable<AnalysisSet<Reit>[]> {
+    return this.http.get<AnalysisSet<Reit>[]>(this.baseUrl + `/reits?origin=${origin}`, this.httpOptions).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getEtfAnalysis(origin: string = 'USA'): Observable<AnalysisSet<Etf>[]> {
+    return this.http.get<AnalysisSet<Etf>[]>(this.baseUrl + `/etfs?origin=${origin}`, this.httpOptions).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getBdrAnalysis(origin: string = 'BR'): Observable<AnalysisSet<Bdr>[]> {
+    return this.http.get<AnalysisSet<Bdr>[]>(this.baseUrl + `/bdrs?origin=${origin}`, this.httpOptions).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getFiagroAnalysis(origin: string = 'BR'): Observable<AnalysisSet<Fiagro>[]> {
+    return this.http.get<AnalysisSet<Fiagro>[]>(this.baseUrl + `/fiagros?origin=${origin}`, this.httpOptions).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getFiagrosBuyRec(origin: string = 'BR', budget: number): Observable<Recommendation[]> {
+    return this.http.get<Recommendation[]>(
+      this.baseUrl + `/fiagros/buy-rec?origin=${origin}&budget=${budget}`,
+      this.httpOptions
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getFiagroReports(forceRefresh: boolean = false): Observable<FiagroReportsResponse> {
+    return this.http.get<FiagroReportsResponse>(
+      this.baseUrl + `/fiagros/reports?force_refresh=${forceRefresh}`,
+      this.httpOptions
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  shareAnalysis$ = this.getShareAnalysis('BR');
+  reitAnalysis$ = this.getReitAnalysis('BR');
+  etfAnalysis$ = this.getEtfAnalysis('USA');
+  bdrAnalysis$ = this.getBdrAnalysis('BR');
 
   getCriteria(): Observable<CriteriaConfig> {
     return this.http.get<CriteriaConfig>(this.baseUrl + '/criteria', this.httpOptions).pipe(
@@ -42,6 +90,24 @@ export class AnalisysService {
 
   saveCriteria(config: CriteriaConfig): Observable<CriteriaConfig> {
     return this.http.put<CriteriaConfig>(this.baseUrl + '/criteria', config, this.httpOptions).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getWatchlist(collection: string): Observable<string[]> {
+    return this.http.get<string[]>(`http://localhost:8000/watchlist?collection=${collection}`, this.httpOptions).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  addToWatchlist(ticker: string, collection: string): Observable<any> {
+    return this.http.post<any>(`http://localhost:8000/watchlist`, { ticker, collection }, this.httpOptions).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  removeFromWatchlist(ticker: string, collection: string): Observable<any> {
+    return this.http.delete<any>(`http://localhost:8000/watchlist/${ticker}?collection=${collection}`, this.httpOptions).pipe(
       catchError(this.handleError)
     );
   }

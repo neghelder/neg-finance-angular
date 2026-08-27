@@ -95,3 +95,97 @@ app-widget-grid {
     transform: translateY(0);
   }
 }
+
+.watchlist-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
+  margin-bottom: 8px;
+
+  h3 {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    color: var(--text-main);
+  }
+
+  .watchlist-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+
+    .ticker-input {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-main);
+      color: var(--text-main);
+      font-size: 14px;
+      outline: none;
+
+      &:focus {
+        border-color: var(--accent);
+      }
+    }
+
+    .add-btn {
+      background-color: var(--accent);
+      color: #fff;
+      border-radius: 8px;
+      border: none;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover:not(:disabled) {
+        background-color: var(--accent-light);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .watchlist-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .empty-msg {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .watchlist-tag {
+      display: inline-flex;
+      align-items: center;
+      background: var(--bg-hover);
+      color: var(--text-main);
+      padding: 4px 10px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid var(--border-color);
+
+      .remove-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        margin-left: 6px;
+        padding: 0 2px;
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+
+        &:hover {
+          color: var(--error);
+        }
+      }
+    }
+  }
+}

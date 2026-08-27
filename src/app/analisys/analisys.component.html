@@ -23,6 +23,20 @@
 
   <app-loading-bar [loading]="loading"></app-loading-bar>
 
+  <div class="watchlist-panel" *ngIf="currentCollection">
+    <h3>My Watchlist ({{ selectedType }})</h3>
+    <div class="watchlist-controls">
+      <input type="text" [(ngModel)]="tickerInput" placeholder="Enter Ticker (e.g. SPY)" class="ticker-input">
+      <button class="add-btn" (click)="addToWatchlist()" [disabled]="!tickerInput">Add</button>
+    </div>
+    <div class="watchlist-tags">
+      <span class="watchlist-tag" *ngFor="let t of watchlist">
+        {{ t }} <button class="remove-btn" (click)="removeFromWatchlist(t)">&times;</button>
+      </span>
+      <span *ngIf="watchlist.length === 0" class="empty-msg">No tickers in watchlist.</span>
+    </div>
+  </div>
+
   <ng-container *ngIf="analysisSets$ | async">
     <div class="grid-wrapper">
       <app-widget-grid
@@ -33,7 +47,15 @@
     </div>
   </ng-container>
 
-  <div class="recommendations-wrapper">
-    <app-recommendations [type]="selectedTab!" [origin]="'BR'"></app-recommendations>
+  <div class="recommendations-wrapper" *ngIf="selectedType !== 'FIAGRO'">
+    <app-recommendations [type]="selectedType" [origin]="selectedOrigin"></app-recommendations>
+  </div>
+
+  <div class="fiagro-buy-rec-wrapper" *ngIf="selectedType === 'FIAGRO'">
+    <app-recommendations [type]="'fiagro'" [origin]="selectedOrigin"></app-recommendations>
+  </div>
+
+  <div class="fiagro-reports-wrapper" *ngIf="selectedType === 'FIAGRO'">
+    <app-fiagro-reports></app-fiagro-reports>
   </div>
 </div>

@@ -26,5 +26,5 @@ export const FIELD_LABELS: Record<string, string> = {
   c3y: 'C3Y',
   market_value: 'Market Value',
   patr: 'Patr.',
-  shareholders: 'Shareholders'
+  shareholders: 'Shareholders (Cotistas)'
 };

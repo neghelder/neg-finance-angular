@@ -79,4 +79,49 @@ describe('CriteriaEditorComponent', () => {
     component.resetToDefaults();
     expect(component.activeConfig?.['SHARE']['BR']['pl']['min']).toBe(0);
   });
+
+  describe('FIAGRO asset type option', () => {
+    it('should include FIAGROs in assetTypeOptions', () => {
+      const fiagro = component.assetTypeOptions.find(o => o.value === 'FIAGRO');
+      expect(fiagro).toBeDefined();
+      expect(fiagro?.label).toBe('FIAGROs');
+    });
+
+    it('should switch fields when FIAGRO asset type selected', () => {
+      // Simulate the service returning FIAGRO criteria data
+      mockAnalysisService.getCriteria.mockReturnValue(of({
+        SHARE: { BR: { dy: { min: 0.1, max: 0.2, unit: 'perc' } } },
+        REIT: { BR: { pvp: { max: 1, unit: 'number' } } },
+        FIAGRO: { BR: { pvp: { max: 1, unit: 'number' }, liqday: { min: 100000, unit: 'number' } } }
+      }));
+
+      // Re-init to pick up new getCriteria return value
+      component.ngOnInit();
+
+      component.onAssetTypeChange('FIAGRO');
+      component.onOriginChange('BR');
+
+      expect(component.selectedAssetType).toBe('FIAGRO');
+      expect(component.fieldsList.length).toBe(2);
+      const keys = component.fieldsList.map(f => f.key);
+      expect(keys).toContain('pvp');
+      expect(keys).toContain('liqday');
+    });
+
+    it('should save FIAGRO criteria through the existing save flow', () => {
+      mockAnalysisService.getCriteria.mockReturnValue(of({
+        FIAGRO: { BR: { pvp: { max: 1, unit: 'number' }, dy: { min: 0.08, unit: 'perc' } } }
+      }));
+
+      component.ngOnInit();
+      component.onAssetTypeChange('FIAGRO');
+      component.onOriginChange('BR');
+
+      component.save();
+
+      const saveCall = (mockAnalysisService.saveCriteria as any).mock.calls.at(-1)[0];
+      // dy should be sent back as 0.08 (not 8)
+      expect(saveCall['FIAGRO']['BR']['dy']['min']).toBeCloseTo(0.08, 5);
+    });
+  });
 });
