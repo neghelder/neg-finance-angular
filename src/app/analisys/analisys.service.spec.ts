@@ -166,43 +166,6 @@ describe('AnalisysService', () => {
     });
   });
 
-  describe('getFiagroReports', () => {
-    it('should fetch FIAGRO reports with force_refresh=false by default', () => {
-      const mockResponse = { status: 'success', eligible_count: 1, results: [] };
-
-      service.getFiagroReports().subscribe(data => {
-        expect(data).toEqual(mockResponse);
-      });
-
-      const req = httpMock.expectOne('http://localhost:8000/analisys/fiagros/reports?force_refresh=false');
-      expect(req.request.method).toBe('GET');
-      req.flush(mockResponse);
-    });
-
-    it('should fetch FIAGRO reports with force_refresh=true when specified', () => {
-      const mockResponse = { status: 'success', eligible_count: 3, results: [] };
-
-      service.getFiagroReports(true).subscribe(data => {
-        expect(data).toEqual(mockResponse);
-      });
-
-      const req = httpMock.expectOne('http://localhost:8000/analisys/fiagros/reports?force_refresh=true');
-      expect(req.request.method).toBe('GET');
-      req.flush(mockResponse);
-    });
-
-    it('should handle server error for reports endpoint', () => {
-      service.getFiagroReports(false).subscribe({
-        error: (err) => {
-          expect(err).toContain('Backend returned code 500');
-        }
-      });
-
-      const req = httpMock.expectOne('http://localhost:8000/analisys/fiagros/reports?force_refresh=false');
-      req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
-    });
-  });
-
   describe('criteria API', () => {
     it('should fetch criteria via GET', () => {
       const mockCriteria = { SHARE: { BR: { pl: { max: 10 } } } };
@@ -227,6 +190,80 @@ describe('AnalisysService', () => {
       expect(req.request.method).toBe('PUT');
       expect(req.request.body).toEqual(criteriaPayload);
       req.flush(criteriaPayload);
+    });
+  });
+
+  describe('scheduled report API', () => {
+    const snapshot = {
+      id: 'snapshot-1', run_id: 'run-1', asset_type: 'FII', ticker: 'HGLG11',
+      qualitative_analysis_id: null, market_status: 'CHEAP', portfolio_status: 'NOT_HELD',
+      grade: 8, rank: 1, criterion_results_json: '{}', cohort_size: 10, criteria_hash: 'criteria',
+      market_snapshot_at: '2026-09-02T08:00:00', cvm_json: null, final_label: 'INDETERMINADO',
+      created_at: '2026-09-02T08:00:00'
+    } as const;
+
+    it('fetches report snapshots by asset class without triggering analysis', () => {
+      service.getScheduledReports('FII').subscribe(reports => expect(reports).toEqual([snapshot]));
+
+      const req = httpMock.expectOne('http://localhost:8000/analisys/reports?asset_type=FII');
+      expect(req.request.method).toBe('GET');
+      req.flush([snapshot]);
+    });
+
+    it('fetches an asset history using the generic read endpoint', () => {
+      service.getScheduledReportHistory('STOCK', 'WEGE3').subscribe(history => expect(history).toEqual([snapshot]));
+
+      const req = httpMock.expectOne('http://localhost:8000/analisys/reports/STOCK/WEGE3/history');
+      expect(req.request.method).toBe('GET');
+      req.flush([snapshot]);
+    });
+
+    it('fetches scheduler status', () => {
+      const status = { runs: [], jobs: { QUEUED: 2 }, config: {}, runtime: { codex_available: true, auth_available: true } };
+      service.getReportAutomationStatus().subscribe(value => expect(value).toEqual(status));
+
+      const req = httpMock.expectOne('http://localhost:8000/analisys/reports/automation/status');
+      expect(req.request.method).toBe('GET');
+      req.flush(status);
+    });
+
+    it('loads the supported ticker catalogue and its configured batch limit', () => {
+      const assets = { asset_type: 'FIAGRO', tickers: ['KNCA11', 'RZAG11'], max_jobs_per_run: 5 } as const;
+      service.getReportAutomationAssets('FIAGRO').subscribe(value => expect(value).toEqual(assets));
+
+      const req = httpMock.expectOne('http://localhost:8000/analisys/reports/automation/assets?asset_type=FIAGRO');
+      expect(req.request.method).toBe('GET');
+      req.flush(assets);
+    });
+
+    it('creates a manual automation run without changing the requested payload', () => {
+      const payload = { asset_type: 'STOCK' as const, tickers: ['WEGE3'], force_reprocess: false };
+      const response = { run_id: 'run-42', status: 'QUEUED', tickers: ['WEGE3'] };
+      service.createReportAutomationRun(payload).subscribe(value => expect(value).toEqual(response));
+
+      const req = httpMock.expectOne('http://localhost:8000/analisys/reports/automation/runs');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(payload);
+      req.flush(response);
+    });
+
+    it('gets run progress and retries recoverable jobs using their dedicated routes', () => {
+      const run = {
+        run_id: 'run-42', status: 'PARTIAL',
+        requested: { asset_type: 'FII', tickers: ['HGLG11'], force_reprocess: false },
+        jobs: { FAILED: 1 }, diagnostics: [], errors: [{ ticker: 'HGLG11', code: 'PROCESSING_FAILED', attempts: 1, status: 'FAILED' }]
+      };
+      service.getReportAutomationRun('run 42').subscribe(value => expect(value).toEqual(run));
+
+      const getReq = httpMock.expectOne('http://localhost:8000/analisys/reports/automation/runs/run%2042');
+      expect(getReq.request.method).toBe('GET');
+      getReq.flush(run);
+
+      service.retryReportAutomationRun('run 42').subscribe(value => expect(value).toEqual(run));
+      const retryReq = httpMock.expectOne('http://localhost:8000/analisys/reports/automation/runs/run%2042/retry');
+      expect(retryReq.request.method).toBe('POST');
+      expect(retryReq.request.body).toEqual({});
+      retryReq.flush(run);
     });
   });
 });
