@@ -20,8 +20,8 @@ class MockAssetTypeSelectorComponent { @Input() options: any; @Input() selectedV
 @Component({ selector: 'app-loading-bar', standalone: true, template: '' })
 class MockLoadingBarComponent { @Input() loading: boolean = false; }
 
-@Component({ selector: 'app-fiagro-reports', standalone: true, template: '' })
-class MockFiagroReportsComponent { }
+@Component({ selector: 'app-scheduled-reports', standalone: true, template: '' })
+class MockScheduledReportsComponent { @Input() assetType: any; }
 
 describe('AnalisysComponent', () => {
   let component: AnalisysComponent;
@@ -44,7 +44,8 @@ describe('AnalisysComponent', () => {
     shareAnalysis$: of(mockShareSets),
     reitAnalysis$: of(mockReitSets),
     getCriteria: () => of({}),
-    getFiagroAnalysis: jest.fn(() => of(mockFiagroSets))
+    getFiagroAnalysis: jest.fn(() => of(mockFiagroSets)),
+    getWatchlist: jest.fn(() => of([]))
   };
 
   beforeEach(async () => {
@@ -54,7 +55,14 @@ describe('AnalisysComponent', () => {
     })
     .overrideComponent(AnalisysComponent, {
       set: {
-        imports: [CommonModule, MockGridComponent, MockRecommendationsComponent, MockAssetTypeSelectorComponent, MockLoadingBarComponent, MockFiagroReportsComponent],
+        imports: [
+          CommonModule,
+          MockGridComponent,
+          MockRecommendationsComponent,
+          MockAssetTypeSelectorComponent,
+          MockLoadingBarComponent,
+          MockScheduledReportsComponent
+        ],
         providers: [
           { provide: AnalisysService, useValue: analysisServiceMock }
         ]
@@ -349,5 +357,45 @@ describe('AnalisysComponent', () => {
       expect(component.analysisSets).toEqual(mockFiagroSets);
       expect(component.selectedSetData).toEqual(mockFiagroSets[0].analisys);
     }));
+  });
+
+  describe('filteredTickers getter', () => {
+    it('should return empty array if analysisSets is empty or null', () => {
+      component.analysisSets = [];
+      expect(component.filteredTickers).toEqual([]);
+    });
+
+    it('should extract tickers from first / AllCheaps set', () => {
+      component.analysisSets = [
+        { name: 'SHARE_BR__AllCheaps', analisys: [{ ticker: 'WEGE3' }, { ticker: 'VALE3' }] },
+        { name: 'SHARE_BR__MyCheap', analisys: [{ ticker: 'PETR4' }] }
+      ];
+      expect(component.filteredTickers).toEqual(['WEGE3', 'VALE3']);
+    });
+  });
+
+  describe('Brazilian watchlist and scheduled report mappings', () => {
+    it('maps BR shares to the scheduler watchlist and STOCK reports', () => {
+      component.selectedTab = 'BR_SHARE';
+      expect(component.currentCollection).toBe('BR_SHARES');
+      expect(component.scheduledReportAssetType).toBe('STOCK');
+    });
+
+    it('maps BR REITs to the scheduler watchlist and FII reports', () => {
+      component.selectedTab = 'BR_REIT';
+      expect(component.currentCollection).toBe('BR_REITS');
+      expect(component.scheduledReportAssetType).toBe('FII');
+    });
+
+    it('maps BR FIAGROs to the scheduler watchlist and FIAGRO reports', () => {
+      component.selectedTab = 'BR_FIAGRO';
+      expect(component.currentCollection).toBe('BR_FIAGROS');
+      expect(component.scheduledReportAssetType).toBe('FIAGRO');
+    });
+
+    it('does not show scheduled reports for foreign asset classes', () => {
+      component.selectedTab = 'USA_SHARE';
+      expect(component.scheduledReportAssetType).toBeNull();
+    });
   });
 });

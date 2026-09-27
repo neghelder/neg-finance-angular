@@ -6,10 +6,17 @@ import { Stock } from './models/stock';
 import { AnalysisSet } from './models/analysisSet';
 import { Reit } from './models/reit';
 import { Fiagro } from './models/fiagro';
-import { FiagroReportsResponse } from './models/fiagro-report';
 import { CriteriaConfig } from './models/criteria';
 import { Etf } from './models/etf';
 import { Bdr } from './models/bdr';
+import {
+  ReportAssetType,
+  ReportAutomationAssets,
+  ReportAutomationRun,
+  ReportAutomationRunRequest,
+  ReportAutomationStatus,
+  ScheduledReportSnapshot
+} from './models/scheduled-report';
 
 
 @Injectable({
@@ -68,9 +75,63 @@ export class AnalisysService {
     );
   }
 
-  getFiagroReports(forceRefresh: boolean = false): Observable<FiagroReportsResponse> {
-    return this.http.get<FiagroReportsResponse>(
-      this.baseUrl + `/fiagros/reports?force_refresh=${forceRefresh}`,
+  getScheduledReports(assetType: ReportAssetType, ticker?: string): Observable<ScheduledReportSnapshot[]> {
+    let url = `${this.baseUrl}/reports?asset_type=${assetType}`;
+    if (ticker) {
+      url += `&ticker=${encodeURIComponent(ticker)}`;
+    }
+    return this.http.get<ScheduledReportSnapshot[]>(url, this.httpOptions).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getScheduledReportHistory(assetType: ReportAssetType, ticker: string): Observable<ScheduledReportSnapshot[]> {
+    return this.http.get<ScheduledReportSnapshot[]>(
+      `${this.baseUrl}/reports/${assetType}/${encodeURIComponent(ticker)}/history`,
+      this.httpOptions
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getReportAutomationStatus(): Observable<ReportAutomationStatus> {
+    return this.http.get<ReportAutomationStatus>(`${this.baseUrl}/reports/automation/status`, this.httpOptions).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getReportAutomationAssets(assetType: ReportAssetType): Observable<ReportAutomationAssets> {
+    return this.http.get<ReportAutomationAssets>(
+      `${this.baseUrl}/reports/automation/assets?asset_type=${assetType}`,
+      this.httpOptions
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  createReportAutomationRun(request: ReportAutomationRunRequest): Observable<ReportAutomationRun> {
+    return this.http.post<ReportAutomationRun>(
+      `${this.baseUrl}/reports/automation/runs`,
+      request,
+      this.httpOptions
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getReportAutomationRun(runId: string): Observable<ReportAutomationRun> {
+    return this.http.get<ReportAutomationRun>(
+      `${this.baseUrl}/reports/automation/runs/${encodeURIComponent(runId)}`,
+      this.httpOptions
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  retryReportAutomationRun(runId: string): Observable<ReportAutomationRun> {
+    return this.http.post<ReportAutomationRun>(
+      `${this.baseUrl}/reports/automation/runs/${encodeURIComponent(runId)}/retry`,
+      {},
       this.httpOptions
     ).pipe(
       catchError(this.handleError)
@@ -113,15 +174,10 @@ export class AnalisysService {
   }
 
   private handleError(err: HttpErrorResponse): Observable<never> {
-    // in a real world app, we may send the server to some remote logging infrastructure
-    // instead of just logging it to the console
     let errorMessage: string;
     if (err.error instanceof ErrorEvent) {
-      // A client-side or network error occurred. Handle it accordingly.
       errorMessage = `An error occurred: ${err.error.message}`;
     } else {
-      // The backend returned an unsuccessful response code.
-      // The response body may contain clues as to what went wrong,
       errorMessage = `Backend returned code ${err.status}: ${err.message}`;
     }
     console.error(err);

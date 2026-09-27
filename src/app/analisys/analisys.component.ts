@@ -11,7 +11,8 @@ import { LoadingBarComponent } from '../shared/loading-bar/loading-bar.component
 import { CriteriaConfig } from './models/criteria';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { FiagroReportsComponent } from './fiagro-reports/fiagro-reports.component';
+import { ScheduledReportsComponent } from './scheduled-reports/scheduled-reports.component';
+import { ReportAssetType } from './models/scheduled-report';
 
 
 @Component({
@@ -25,7 +26,7 @@ import { FiagroReportsComponent } from './fiagro-reports/fiagro-reports.componen
     LoadingBarComponent,
     RouterModule,
     FormsModule,
-    FiagroReportsComponent
+    ScheduledReportsComponent
   ],
   templateUrl: './analisys.component.html',
   styleUrl: './analisys.component.scss'
@@ -210,10 +211,22 @@ export class AnalisysComponent implements OnInit {
   tickerInput: string = '';
 
   get currentCollection(): string {
-    const { type } = this.parseAssetSelection(this.selectedTab);
+    const { origin, type } = this.parseAssetSelection(this.selectedTab);
+    if (origin === 'BR' && type === 'REIT') return 'BR_REITS';
+    if (origin === 'BR' && type === 'FIAGRO') return 'BR_FIAGROS';
+    if (origin === 'BR' && type === 'SHARE') return 'BR_SHARES';
     if (type === 'ETF') return 'USA_ETFS';
     if (type === 'BDR') return 'BR_BDRS';
     return '';
+  }
+
+  get scheduledReportAssetType(): ReportAssetType | null {
+    const { origin, type } = this.parseAssetSelection(this.selectedTab);
+    if (origin !== 'BR') return null;
+    if (type === 'REIT') return 'FII';
+    if (type === 'FIAGRO') return 'FIAGRO';
+    if (type === 'SHARE') return 'STOCK';
+    return null;
   }
 
   constructor(private analysisService: AnalisysService) { }
@@ -324,6 +337,15 @@ export class AnalisysComponent implements OnInit {
         this.selectedAssetType$.next(this.selectedTab); // Reload analysis
       });
     }
+  }
+
+  get filteredTickers(): string[] {
+    if (!this.analysisSets || this.analysisSets.length === 0) return [];
+    const cheapSet = this.analysisSets.find(s => s.name && s.name.includes('AllCheaps')) || this.analysisSets[0];
+    if (!cheapSet || !cheapSet.analisys || !Array.isArray(cheapSet.analisys)) return [];
+    return cheapSet.analisys
+      .map((row: any) => row.ticker || row.Ticker || row.TICKER)
+      .filter((t: any) => typeof t === 'string' && t.trim().length > 0);
   }
 
 }

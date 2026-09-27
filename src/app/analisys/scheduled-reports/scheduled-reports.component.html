@@ -1,0 +1,293 @@
+<section class="scheduled-reports" aria-label="Relatórios agendados">
+  <div class="reports-header">
+    <div>
+      <h3>Relatórios agendados</h3>
+      <p>Escolha os ativos que deseja consultar. Para cada um, será exibida apenas a avaliação mais recente.</p>
+    </div>
+    <div class="queue-summary" *ngIf="automationStatus as status">
+      <span *ngFor="let job of jobEntries()">{{ job.status }}: <strong>{{ job.count }}</strong></span>
+      <span *ngIf="jobEntries().length === 0">Fila vazia</span>
+    </div>
+  </div>
+
+  <app-loading-bar [loading]="isLoading"></app-loading-bar>
+
+  <div class="error-state" *ngIf="!isLoading && errorMessage">{{ errorMessage }}</div>
+
+  <section class="manual-request-panel" *ngIf="!isLoading && !errorMessage && supportedAssets as assets" aria-label="Solicitar relatório manualmente">
+    <div class="manual-request-heading">
+      <div>
+        <h4>Solicitar relatório</h4>
+        <p>Selecione até {{ maxManualJobs }} {{ maxManualJobs === 1 ? 'ativo' : 'ativos' }} de {{ assets.asset_type }}. O relatório usa a fonte mais recente e evita reprocessamento desnecessário.</p>
+      </div>
+      <span class="selection-count">{{ manualSelectedTickers.size }} / {{ maxManualJobs }}</span>
+    </div>
+
+    <p class="runtime-unavailable" *ngIf="automationRuntimeMessage">{{ automationRuntimeMessage }}</p>
+
+    <label class="ticker-search manual-ticker-search">
+      <span>Pesquisar ativo suportado</span>
+      <input
+        type="search"
+        [value]="manualTickerSearch"
+        (input)="setManualTickerSearch($any($event.target).value)"
+        placeholder="Ex.: KNRI11"
+        autocomplete="off">
+    </label>
+
+    <div class="filter-actions">
+      <button type="button" (click)="selectFilteredManualTickers()" [disabled]="filteredManualTickers.length === 0 || manualSelectedTickers.size >= maxManualJobs">Selecionar resultados</button>
+      <button type="button" (click)="clearManualTickerSelection()" [disabled]="manualSelectedTickers.size === 0">Limpar seleção</button>
+    </div>
+
+    <div class="ticker-options manual-ticker-options" *ngIf="filteredManualTickers.length; else noManualTickerResults">
+      <label *ngFor="let ticker of filteredManualTickers">
+        <input
+          type="checkbox"
+          [checked]="isManualTickerSelected(ticker)"
+          [disabled]="!isManualTickerSelected(ticker) && manualSelectedTickers.size >= maxManualJobs"
+          (change)="setManualTickerSelected(ticker, $any($event.target).checked)">
+        <span>{{ ticker }}</span>
+      </label>
+    </div>
+    <ng-template #noManualTickerResults><p class="no-filter-results">Nenhum ativo suportado encontrado.</p></ng-template>
+
+    <label class="force-reprocess-option">
+      <input type="checkbox" [(ngModel)]="forceReprocess" [disabled]="manualSubmitting || isManualRunActive">
+      <span>Forçar nova análise mesmo se o documento mais recente já foi processado</span>
+    </label>
+
+    <div class="force-confirmation" *ngIf="forceReprocessConfirmationRequired" role="alert">
+      <p>Forçar uma nova análise pode consumir processamento mesmo sem um documento novo. Confirma a solicitação?</p>
+      <div>
+        <button type="button" class="primary-action" (click)="confirmForceReprocess()" [disabled]="manualSubmitting">Confirmar nova análise</button>
+        <button type="button" (click)="cancelForceReprocess()" [disabled]="manualSubmitting">Cancelar</button>
+      </div>
+    </div>
+
+    <div class="manual-actions" *ngIf="!forceReprocessConfirmationRequired">
+      <button
+        type="button"
+        class="primary-action"
+        (click)="requestManualRun()"
+        [disabled]="manualSubmitting || isManualRunActive || manualSelectedTickers.size === 0 || !isAutomationRuntimeAvailable">
+        {{ manualSubmitting ? 'Enviando…' : isManualRunActive ? 'Solicitação em andamento' : 'Solicitar relatório' }}
+      </button>
+    </div>
+
+    <p class="request-message success" *ngIf="manualSuccess" aria-live="polite">{{ manualSuccess }}</p>
+    <p class="request-message error" *ngIf="manualError" aria-live="assertive">{{ manualError }}</p>
+
+    <section class="run-progress" *ngIf="activeManualRun as run" aria-live="polite">
+      <div class="run-progress-heading">
+        <div>
+          <span>Solicitação {{ run.run_id }}</span>
+          <strong>{{ runStatusLabel(run.status) }}</strong>
+        </div>
+        <button type="button" (click)="retryManualRun()" *ngIf="canRetryManualRun" [disabled]="manualSubmitting">Tentar novamente ativos recuperáveis</button>
+      </div>
+
+      <div class="run-status-summary" *ngIf="manualJobEntries.length">
+        <span *ngFor="let job of manualJobEntries">{{ runStatusLabel(job.status) }}: <strong>{{ job.count }}</strong></span>
+      </div>
+
+      <div class="run-ticker-progress">
+        <span *ngFor="let ticker of run.requested.tickers">
+          <strong>{{ ticker }}</strong>
+          <small>{{ runStatusLabel(manualRunTickerStatus(ticker)) }}</small>
+        </span>
+      </div>
+
+      <p class="run-failure-notice" *ngIf="run.status === 'PARTIAL' || run.status === 'FAILED'">
+        Um ou mais ativos não foram concluídos. Tente novamente os ativos recuperáveis.
+      </p>
+    </section>
+  </section>
+
+  <div class="empty-state" *ngIf="!isLoading && !errorMessage && reports.length === 0">
+    Ainda não há uma avaliação agendada para esta classe. O status quantitativo será preenchido na próxima execução.
+  </div>
+
+  <details class="asset-filter" *ngIf="!isLoading && !errorMessage && reports.length" open>
+    <summary>
+      <span>Filtrar ativos</span>
+      <strong>{{ selectedTickers.size ? selectedTickers.size + ' selecionado(s)' : 'Nenhum selecionado' }}</strong>
+    </summary>
+    <div class="filter-content">
+      <label class="ticker-search">
+        <span>Pesquisar ticker</span>
+        <input
+          type="search"
+          [value]="tickerSearch"
+          (input)="setTickerSearch($any($event.target).value)"
+          placeholder="Ex.: KNRI11"
+          autocomplete="off">
+      </label>
+
+      <div class="filter-actions">
+        <button type="button" (click)="selectFilteredTickers()" [disabled]="filteredTickers.length === 0">Selecionar resultados</button>
+        <button type="button" (click)="clearTickerSelection()" [disabled]="selectedTickers.size === 0">Limpar seleção</button>
+      </div>
+
+      <div class="ticker-options" *ngIf="filteredTickers.length; else noTickerResults">
+        <label *ngFor="let ticker of filteredTickers">
+          <input
+            type="checkbox"
+            [checked]="isTickerSelected(ticker)"
+            (change)="setTickerSelected(ticker, $any($event.target).checked)">
+          <span>{{ ticker }}</span>
+        </label>
+      </div>
+      <ng-template #noTickerResults><p class="no-filter-results">Nenhum ticker encontrado.</p></ng-template>
+    </div>
+  </details>
+
+  <div class="selection-prompt" *ngIf="!isLoading && !errorMessage && reports.length && selectedTickers.size === 0">
+    Selecione um ou mais ativos acima para visualizar seus relatórios.
+  </div>
+
+  <article class="report-card" *ngFor="let report of visibleReports">
+    <header class="card-header">
+      <div>
+        <h4>{{ report.ticker }}</h4>
+        <span>{{ report.asset_type }} · snapshot {{ report.created_at | date:'short' }}</span>
+      </div>
+      <span class="final-label" [ngClass]="labelClass(report.final_label)">{{ report.final_label }}</span>
+    </header>
+
+    <div class="category-grid">
+      <div class="category"><span>Mercado</span><strong>{{ report.market.status }}</strong></div>
+      <div class="category"><span>Carteira</span><strong>{{ report.portfolio_status }}</strong></div>
+      <div class="category">
+        <span>Pontuação quantitativa <button type="button" class="indicator-help" [matTooltip]="marketScoreTooltip(report.asset_type)" aria-label="Como a pontuação quantitativa é calculada">?</button></span>
+        <strong>{{ report.market.grade ?? '—' }}</strong>
+      </div>
+      <div class="category">
+        <span>Posição entre aprovados <button type="button" class="indicator-help" [matTooltip]="rankTooltip()" aria-label="O que significa posição entre aprovados">?</button></span>
+        <strong>{{ report.market.rank === null ? '—' : report.market.rank + 'º' }}</strong>
+      </div>
+      <div class="category">
+        <span>Universo analisado <button type="button" class="indicator-help" [matTooltip]="cohortTooltip()" aria-label="O que significa universo analisado">?</button></span>
+        <strong>{{ report.market.cohort_size }} ativos</strong>
+      </div>
+    </div>
+
+    <div class="state-grid">
+      <div>
+        <span class="state-title">Estado qualitativo</span>
+        <p [class.warning]="report.qualitative.status === 'STALE' || report.freshness.status === 'STALE'">{{ qualitativeState(report) }}</p>
+      </div>
+      <div>
+        <span class="state-title">Fontes</span>
+        <p [class.warning]="report.conflicts.has_conflict || report.freshness.status === 'STALE'">{{ sourceState(report) }}</p>
+        <ul *ngIf="report.conflicts.has_conflict" class="conflicts">
+          <li>{{ report.conflicts.qualitative_variants_for_revision }} análise(s) para a revisão</li>
+          <li>{{ report.conflicts.source_revision_count }} revisão(ões) da fonte</li>
+        </ul>
+      </div>
+      <div *ngIf="hasPartialFailure(report)" class="partial-failure">
+        <span class="state-title">Falha parcial</span>
+      </div>
+    </div>
+
+    <details class="report-details">
+      <summary>{{ detailTitle(report.asset_type) }}</summary>
+      <ng-container *ngTemplateOutlet="reportDetailContent; context: { $implicit: report }"></ng-container>
+    </details>
+
+    <button type="button" class="history-button" (click)="showHistory(report)" [attr.aria-label]="'Ver histórico de ' + report.ticker">
+      {{ selectedTicker === report.ticker ? 'Atualizar histórico' : 'Ver histórico' }}
+    </button>
+
+  <section class="history-panel" *ngIf="selectedTicker === report.ticker" aria-live="polite">
+    <div class="history-heading">
+      <div>
+        <h4>Histórico de {{ selectedTicker }}</h4>
+        <p>Selecione uma data para consultar os detalhes daquele relatório.</p>
+      </div>
+      <button type="button" (click)="closeHistory()">Fechar</button>
+    </div>
+    <app-loading-bar [loading]="historyLoading"></app-loading-bar>
+    <p class="error-state" *ngIf="historyError">{{ historyError }}</p>
+    <p class="empty-history" *ngIf="!historyLoading && !historyError && selectedHistory.length === 0">Nenhuma versão anterior encontrada.</p>
+
+    <div class="history-layout" *ngIf="!historyLoading && !historyError && selectedHistory.length">
+      <nav class="history-list" aria-label="Versões do relatório">
+        <button
+          type="button"
+          class="history-snapshot"
+          *ngFor="let snapshot of selectedHistory"
+          [class.selected]="selectedHistoryReport?.id === snapshot.id"
+          [attr.aria-pressed]="selectedHistoryReport?.id === snapshot.id"
+          (click)="selectHistorySnapshot(snapshot)">
+          <strong>{{ snapshot.created_at | date:'short' }}</strong>
+          <span>{{ snapshot.final_label }} · {{ snapshot.market.status }}</span>
+        </button>
+      </nav>
+
+      <article class="history-preview" *ngIf="selectedHistoryReport as historicalReport">
+        <header>
+          <div>
+            <span class="eyebrow">Versão selecionada</span>
+            <h5>{{ historicalReport.created_at | date:'medium' }}</h5>
+          </div>
+          <span class="final-label" [ngClass]="labelClass(historicalReport.final_label)">{{ historicalReport.final_label }}</span>
+        </header>
+        <ng-container *ngTemplateOutlet="reportDetailContent; context: { $implicit: historicalReport }"></ng-container>
+      </article>
+    </div>
+  </section>
+  </article>
+</section>
+
+<ng-template #reportDetailContent let-report>
+  <dl class="report-metadata">
+    <div><dt>Data do mercado</dt><dd>{{ report.market.snapshot_at | date:'short' }}</dd></div>
+    <div><dt>Documento</dt><dd>{{ report.source?.document_id ?? 'Indisponível' }}</dd></div>
+    <div><dt>Revisão</dt><dd>{{ report.source?.revision ?? 'Indisponível' }}</dd></div>
+    <div><dt>Publicado em</dt><dd>{{ report.source?.published_at ? (report.source.published_at | date:'short') : 'Indisponível' }}</dd></div>
+  </dl>
+
+  <section class="detail-section">
+    <div class="detail-heading">
+      <h5>Resultado dos critérios</h5>
+      <span class="detail-hash" [title]="report.market.criteria_hash">Critérios {{ report.market.criteria_hash }}</span>
+    </div>
+    <dl class="structured-grid">
+      <div *ngFor="let row of detailRows(report.market.criterion_results)" [class.detail-wide]="row.value.length > 80">
+        <dt>{{ row.label }}</dt>
+        <dd [class.value-pass]="row.value === 'Atende'" [class.value-fail]="row.value === 'Não atende'">{{ row.value }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <ng-container *ngIf="qualitativeRows(report) as summaryRows">
+  <section class="detail-section" *ngIf="summaryRows.length">
+    <h5>Análise qualitativa</h5>
+    <dl class="structured-grid">
+      <div *ngFor="let row of summaryRows" [class.detail-wide]="row.value.length > 80">
+        <dt>{{ row.label }}</dt><dd>{{ row.value }}</dd>
+      </div>
+    </dl>
+  </section>
+  </ng-container>
+
+  <section class="detail-section">
+    <h5>Indicadores CVM</h5>
+    <dl class="structured-grid">
+      <div *ngFor="let row of detailRows(report.details.cvm)" [class.detail-wide]="row.value.length > 80">
+        <dt>{{ row.label }}</dt><dd>{{ row.value }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="detail-section evidence-section" *ngIf="report.qualitative.evidence.length">
+    <h5>Evidências por página</h5>
+    <article class="evidence-card" *ngFor="let evidence of report.qualitative.evidence">
+      <strong>{{ evidence.page === null ? 'Página não informada' : 'Página ' + evidence.page }}</strong>
+      <dl class="structured-grid">
+        <div *ngFor="let row of evidenceRows(evidence)" [class.detail-wide]="row.value.length > 80"><dt>{{ row.label }}</dt><dd>{{ row.value }}</dd></div>
+      </dl>
+    </article>
+  </section>
+</ng-template>

@@ -55,7 +55,7 @@
     <app-recommendations [type]="'fiagro'" [origin]="selectedOrigin"></app-recommendations>
   </div>
 
-  <div class="fiagro-reports-wrapper" *ngIf="selectedType === 'FIAGRO'">
-    <app-fiagro-reports></app-fiagro-reports>
+  <div class="scheduled-reports-wrapper" *ngIf="scheduledReportAssetType as reportAssetType">
+    <app-scheduled-reports [assetType]="reportAssetType"></app-scheduled-reports>
   </div>
 </div>
