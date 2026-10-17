@@ -2,6 +2,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, map, of, tap, throwError } from 'rxjs';
 import { BrokerageCollection, Note } from './brokerage';
+import { AssetCatalogService } from '../settings/asset-catalog.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,6 +10,7 @@ import { BrokerageCollection, Note } from './brokerage';
 export class BrokerageService {
 
   private url: string = 'http://localhost:8000/brokerage/notes?sort=1';
+  private includeArchived = false;
   private httpOptions = { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) };
 
   private brokerageHistorySubject = new BehaviorSubject<BrokerageCollection[]>([]);
@@ -18,7 +20,7 @@ export class BrokerageService {
   //   catchError(this.handleError)
   // )
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private catalog: AssetCatalogService) {
     this.loadBrokerageHistory();
   }
 
@@ -47,12 +49,30 @@ export class BrokerageService {
   }
 
   private loadBrokerageHistory(): void {
-    this.http.get<BrokerageCollection[]>(this.url)
+    const url = this.includeArchived ? `${this.url}&include_archived=true` : this.url;
+    this.http.get<BrokerageCollection[]>(url)
       .pipe(
         // tap(collections => console.log(collections)),
         catchError(this.handleError)
       )
       .subscribe((data: BrokerageCollection[]) => this.brokerageHistorySubject.next(data));
+  }
+
+  loadBrokerageHistoryIncludingArchived(includeArchived = false): void {
+    this.includeArchived = includeArchived;
+    this.loadBrokerageHistory();
+  }
+
+  availableBrokerageCategories() {
+    return this.catalog.getCategories('BROKERAGE');
+  }
+
+  enableCategory(code: string) {
+    return this.catalog.enableBrokerageCategory(code).pipe(tap(() => this.loadBrokerageHistory()));
+  }
+
+  archiveCategory(code: string) {
+    return this.catalog.archiveBrokerageCategory(code).pipe(tap(() => this.loadBrokerageHistory()));
   }
 
   private handleError(err: HttpErrorResponse): Observable<never> {

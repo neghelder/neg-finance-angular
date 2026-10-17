@@ -3,6 +3,7 @@ import { CriteriaEditorComponent } from './criteria-editor.component';
 import { AnalisysService } from '../analisys.service';
 import { of } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
+import { AssetCatalogService } from '../../settings/asset-catalog.service';
 
 describe('CriteriaEditorComponent', () => {
   let component: CriteriaEditorComponent;
@@ -22,6 +23,7 @@ describe('CriteriaEditorComponent', () => {
       imports: [CriteriaEditorComponent],
       providers: [
         { provide: AnalisysService, useValue: mockAnalysisService },
+        { provide: AssetCatalogService, useValue: { getCategories: () => of([]) } },
         { provide: ActivatedRoute, useValue: {} }
       ]
     })

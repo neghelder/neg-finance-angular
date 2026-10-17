@@ -35,10 +35,15 @@ import { Portifolio } from './portifolio';
 
 export class PortifolioComponent {
 
-  customPriceRenderer(params: any) {
-    const formattedValue = `$${params.value.toFixed(2)}`;
+  customPriceRenderer = (params: any) => {
+    if (params.value === null || params.value === undefined) {
+      return '<span>N/A</span>';
+    }
+    const formattedValue = new Intl.NumberFormat('pt-BR', {
+      style: 'currency', currency: this.selectedPortfolio?.currency_code || 'BRL'
+    }).format(params.value);
     return `<span style="color: ${params.value < 0 ? 'red' : 'green'}">${formattedValue}</span>`;
-  }
+  };
 
   colDefs: ColDef[] = [
     { field: 'ticker', headerName: 'Papel', width: 100 },
@@ -75,9 +80,9 @@ export class PortifolioComponent {
         for (let port of ports) {
           const types = new Map<string, any[]>();
 
-          const positions = port.assets.map(asset => ({
+          const positions = port.assets.filter(asset => asset.market_value != null).map(asset => ({
             name: asset.ticker,
-            y: asset.market_value
+            y: asset.market_value as number
           }));
           types.set('ByPosition', positions);
 

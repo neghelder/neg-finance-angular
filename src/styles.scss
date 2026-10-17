@@ -69,6 +69,7 @@ html, body {
   --accent: #3b82f6;
   --accent-light: #60a5fa;
   --accent-muted: rgba(59, 130, 246, 0.2);
+  --error: #b42335;
   
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -112,6 +113,7 @@ html, body {
   --accent: #638cff;
   --accent-light: #8aabff;
   --accent-muted: rgba(99, 140, 255, 0.3);
+  --error: #ff8a93;
   
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
@@ -161,6 +163,51 @@ html, body {
   --mdc-filled-text-field-label-text-color: var(--text-muted);
   --mdc-outlined-text-field-input-text-color: var(--text-main);
   --mdc-outlined-text-field-label-text-color: var(--text-muted);
+}
+
+/* Native selects shared by brokerage and catalog settings. */
+.theme-select-wrapper {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+}
+
+.theme-select {
+  appearance: none;
+  min-height: 40px;
+  padding: 8px 36px 8px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-main);
+  font: 500 14px var(--shell-font-family);
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--shell-transition-fast), box-shadow var(--shell-transition-fast);
+
+  &:hover {
+    border-color: var(--text-muted);
+  }
+
+  &:focus-visible {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-muted);
+  }
+
+  option {
+    background: var(--bg-secondary);
+    color: var(--text-main);
+  }
+}
+
+.theme-select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 /* You can add global styles to this file, and also import other style files */

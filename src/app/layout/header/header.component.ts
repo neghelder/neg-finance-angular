@@ -7,6 +7,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { AuthService } from '../../auth/auth.service';
 import { LayoutService } from '../layout.service';
 import { ThemeService } from '../theme.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-header',
@@ -25,6 +26,7 @@ export class HeaderComponent {
   private auth = inject(AuthService);
   private layout = inject(LayoutService);
   themeService = inject(ThemeService);
+  private router = inject(Router);
 
   hasValidSession = signal(this.auth.hasCurrentSession());
 
@@ -34,5 +36,9 @@ export class HeaderComponent {
 
   onToggleTheme(): void {
     this.themeService.toggleTheme();
+  }
+
+  openSettings(): void {
+    this.router.navigateByUrl('/settings/asset-categories');
   }
 }

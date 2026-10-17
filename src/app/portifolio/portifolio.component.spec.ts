@@ -4,6 +4,7 @@ import { PortifolioService } from './portifolio.service';
 import { of } from 'rxjs';
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Portifolio } from './portifolio';
+import { FormsModule } from '@angular/forms';
 
 import { CommonModule } from '@angular/common';
 
@@ -53,7 +54,7 @@ describe('PortifolioComponent', () => {
     })
     .overrideComponent(PortifolioComponent, {
       set: {
-        imports: [CommonModule, MockGridComponent, MockPieComponent, MockAssetTypeSelectorComponent, MockLoadingBarComponent],
+        imports: [CommonModule, FormsModule, MockGridComponent, MockPieComponent, MockAssetTypeSelectorComponent, MockLoadingBarComponent],
         providers: [
           { provide: PortifolioService, useValue: portifolioServiceMock }
         ]
@@ -129,16 +130,50 @@ describe('PortifolioComponent', () => {
   });
 
   describe('customPriceRenderer', () => {
+    it('uses the selected portfolio currency', () => {
+      component.selectedPortfolio = { ...mockPortfolios[0], currency_code: 'USD' };
+
+      expect(component.customPriceRenderer({ value: 10.5 })).toContain('US$');
+    });
+
+    it('shows unavailable prices without treating zero as unavailable', () => {
+      expect(component.customPriceRenderer({ value: null })).toContain('N/A');
+      expect(component.customPriceRenderer({ value: undefined })).toContain('N/A');
+      expect(component.customPriceRenderer({ value: 0 })).toContain('0,00');
+    });
+
     it('should format positive values in green', () => {
       const result = component.customPriceRenderer({ value: 10.5 });
       expect(result).toContain('color: green');
-      expect(result).toContain('$10.50');
+      expect(result).toContain('10,50');
     });
 
     it('should format negative values in red', () => {
       const result = component.customPriceRenderer({ value: -5.3 });
       expect(result).toContain('color: red');
-      expect(result).toContain('$-5.30');
+      expect(result).toContain('5,30');
     });
   });
+
+  it('renders unavailable valuation metrics while preserving the cost in the portfolio currency', fakeAsync(() => {
+    component.loading = false;
+    component.portifolio$ = of([]);
+    component.selectedPortfolio = {
+      ...mockPortfolios[0],
+      currency_code: 'USD',
+      metrics: {
+        ...mockPortfolios[0].metrics,
+        total_value: null,
+        unrealized_gain: null,
+        gain: null
+      }
+    };
+    fixture.detectChanges();
+
+    const cardTitles = Array.from(fixture.nativeElement.querySelectorAll('.card-title')) as HTMLElement[];
+    expect(cardTitles[0].textContent).toContain('N/A');
+    expect(cardTitles[1].textContent).toContain('N/A');
+    const cost = fixture.nativeElement.querySelector('.card-detail .font-semibold') as HTMLElement;
+    expect(cost.textContent).toContain('$11,050.00');
+  }));
 });

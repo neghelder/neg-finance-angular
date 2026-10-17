@@ -1,23 +1,58 @@
 <div class="content-container">
-  <div class="header-row">
+  <div class="category-toolbar">
     <app-asset-type-selector
       [options]="assetTypeOptions"
       [selectedValue]="selectedAssetType"
       (selectionChange)="onAssetTypeChange($event)">
     </app-asset-type-selector>
 
-    <div class="action-buttons">
-      <button *ngIf="selectedData != undefined" mat-mini-fab color="dark" (click)="onDelete()">
-        <mat-icon>delete</mat-icon>
+    <button class="action-button action-button--accent" type="button" (click)="openCategoryPicker()" [attr.aria-expanded]="manageCategoriesOpen" aria-controls="category-management">
+      <mat-icon>tune</mat-icon>
+      {{ manageCategoriesOpen ? 'Fechar categorias' : 'Gerenciar categorias' }}
+    </button>
+  </div>
+
+  <section id="category-management" class="category-management" *ngIf="manageCategoriesOpen" aria-label="Gerenciar categorias">
+    <div>
+      <h3>Categorias de ativos</h3>
+      <p>Habilite uma categoria para registrar a primeira nota, mesmo sem ativos cadastrados. Categorias arquivadas podem ser reativadas aqui.</p>
+    </div>
+    <div class="category-controls">
+      <label for="category-to-enable">Categoria disponível</label>
+      <span class="theme-select-wrapper">
+        <select id="category-to-enable" class="theme-select" [(ngModel)]="categoryToEnable">
+          <option value="">Selecione uma categoria</option>
+          <option *ngFor="let category of availableCategories" [value]="category.code">{{ category.label }} ({{ category.code }}){{ category.brokerage_state === 'archived' ? ' — arquivada' : '' }}</option>
+        </select>
+        <span class="theme-select-arrow" aria-hidden="true">▾</span>
+      </span>
+      <button class="action-button action-button--primary" type="button" (click)="enableSelectedCategory()" [disabled]="!categoryToEnable">{{ categoryToEnableIsArchived ? 'Reativar' : 'Habilitar' }}</button>
+      <span *ngIf="!availableCategories.length" class="category-hint">Nenhuma categoria disponível para habilitar.</span>
+    </div>
+    <div class="category-secondary-actions">
+      <button class="action-button" type="button" (click)="toggleArchived()">{{ includeArchived ? 'Ocultar arquivadas' : 'Mostrar arquivadas' }}</button>
+      <button class="action-button action-button--danger" type="button" (click)="archiveSelectedCategory()" [disabled]="!selectedCollection || selectedCollection.archived">
+        <mat-icon>archive</mat-icon> Arquivar categoria selecionada
       </button>
-      <button *ngIf="selectedData != undefined" mat-mini-fab color="dark" (click)="onEdit()">
-        <mat-icon>edit</mat-icon>
+      <a class="action-button" routerLink="/settings/asset-categories">Configurar mercados e tipos</a>
+    </div>
+    <p class="category-error" role="alert" *ngIf="categoryError">{{ categoryError }}</p>
+  </section>
+
+  <div class="notes-toolbar" aria-label="Ações das notas de corretagem">
+    <h3>Notas de corretagem</h3>
+    <div class="note-actions">
+      <button *ngIf="selectedData != undefined" class="action-button action-button--danger" type="button" (click)="onDelete()" [disabled]="selectedCollection?.archived">
+        <mat-icon>delete</mat-icon> Excluir nota
       </button>
-      <button mat-mini-fab color="accent" (click)="onRenameTicker()">
-        <mat-icon>drive_file_rename_outline</mat-icon>
+      <button *ngIf="selectedData != undefined" class="action-button" type="button" (click)="onEdit()" [disabled]="selectedCollection?.archived">
+        <mat-icon>edit</mat-icon> Editar nota
       </button>
-      <button mat-mini-fab color="primary" (click)="onAdd()">
-        <mat-icon>add</mat-icon>
+      <button class="action-button" type="button" (click)="onRenameTicker()" [disabled]="!selectedCollection || selectedCollection.archived || !tickerNames.length">
+        <mat-icon>drive_file_rename_outline</mat-icon> Renomear ativo
+      </button>
+      <button class="action-button action-button--primary" type="button" (click)="onAdd()" [disabled]="!selectedCollection || selectedCollection.archived">
+        <mat-icon>add</mat-icon> Adicionar nota
       </button>
     </div>
   </div>

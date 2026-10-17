@@ -23,10 +23,10 @@
           <span class="material-icons">account_balance_wallet</span>
         </div>
         <p class="card-subtitle">Total Value & Cost</p>
-        <h3 class="card-title">{{ selectedPortfolio.metrics.total_value | currency:'BRL' }}</h3>
+        <h3 class="card-title">{{ selectedPortfolio.metrics.total_value == null ? 'N/A' : (selectedPortfolio.metrics.total_value | currency:(selectedPortfolio.currency_code || 'BRL')) }}</h3>
         <p class="card-detail">
           <span class="text-slate">Cost Basis:</span> 
-          <span class="font-semibold">{{ selectedPortfolio.metrics.cost | currency:'BRL' }}</span>
+          <span class="font-semibold">{{ selectedPortfolio.metrics.cost | currency:(selectedPortfolio.currency_code || 'BRL') }}</span>
         </p>
       </div>
 
@@ -38,19 +38,19 @@
         <div class="flex-between">
           <div>
             <p class="card-subtitle">Total Gain</p>
-            <h3 class="card-title text-success">{{ selectedPortfolio.metrics.gain | currency:'BRL' }}</h3>
+            <h3 class="card-title text-success">{{ selectedPortfolio.metrics.gain == null ? 'N/A' : (selectedPortfolio.metrics.gain | currency:(selectedPortfolio.currency_code || 'BRL')) }}</h3>
           </div>
         </div>
         <div class="card-divider"></div>
         <div class="card-stats-row">
           <div class="stat-col">
             <span class="stat-label">Unrealized</span>
-            <span class="stat-value">{{ selectedPortfolio.metrics.unrealized_gain | currency:'BRL' }}</span>
+            <span class="stat-value">{{ selectedPortfolio.metrics.unrealized_gain == null ? 'N/A' : (selectedPortfolio.metrics.unrealized_gain | currency:(selectedPortfolio.currency_code || 'BRL')) }}</span>
           </div>
           <div class="stat-divider"></div>
           <div class="stat-col text-right">
             <span class="stat-label">Realized</span>
-            <span class="stat-value">{{ selectedPortfolio.metrics.realized_gain | currency:'BRL' }}</span>
+            <span class="stat-value">{{ selectedPortfolio.metrics.realized_gain | currency:(selectedPortfolio.currency_code || 'BRL') }}</span>
           </div>
         </div>
       </div>
@@ -61,7 +61,7 @@
           <span class="material-icons">payments</span>
         </div>
         <p class="card-subtitle">Last Dividends</p>
-        <h3 class="card-title">{{ selectedPortfolio.metrics.last_dividends | currency:'BRL' }}</h3>
+        <h3 class="card-title">{{ selectedPortfolio.metrics.last_dividends | currency:(selectedPortfolio.currency_code || 'BRL') }}</h3>
         <p class="card-detail">
           <span class="text-slate">Recent yield payout</span>
         </p>
