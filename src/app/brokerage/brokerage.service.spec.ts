@@ -2,6 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { BrokerageService } from './brokerage.service';
 import { BrokerageCollection } from './brokerage';
+import { AssetCatalogService } from '../settings/asset-catalog.service';
+import { of } from 'rxjs';
 
 describe('BrokerageService', () => {
   let service: BrokerageService;
@@ -24,7 +26,8 @@ describe('BrokerageService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule]
+      imports: [HttpClientTestingModule],
+      providers: [{ provide: AssetCatalogService, useValue: { getCategories: () => of([]) } }]
     });
     service = TestBed.inject(BrokerageService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -88,6 +91,15 @@ describe('BrokerageService', () => {
       const postReq = httpMock.expectOne('http://localhost:8000/brokerage/note');
       postReq.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
     });
+  });
+
+  it('preserves the archived view when notes refresh', () => {
+    service.loadBrokerageHistoryIncludingArchived(true);
+    httpMock.expectOne('http://localhost:8000/brokerage/notes?sort=1&include_archived=true').flush(mockCollections);
+
+    service.updateNote({ collection: 'acoes', id: -1 }).subscribe();
+    httpMock.expectOne('http://localhost:8000/brokerage/note').flush({});
+    httpMock.expectOne('http://localhost:8000/brokerage/notes?sort=1&include_archived=true').flush(mockCollections);
   });
 
   describe('deleteNote', () => {

@@ -1,0 +1,55 @@
+<section class="settings-page">
+  <h2>Asset categories</h2>
+  <p class="description">Configure markets and supported asset categories. Brokerage enablement happens in Brokerage History.</p>
+  <p class="error" *ngIf="error">{{ error }}</p>
+
+  <div class="forms">
+    <mat-card>
+      <mat-card-title>New market</mat-card-title>
+      <mat-card-content>
+        <mat-form-field><mat-label>Code</mat-label><input matInput [(ngModel)]="market.code" placeholder="CN"></mat-form-field>
+        <mat-form-field><mat-label>Label</mat-label><input matInput [(ngModel)]="market.label" placeholder="China"></mat-form-field>
+        <mat-form-field><mat-label>Currency</mat-label><input matInput [(ngModel)]="market.currency_code" placeholder="CNY"></mat-form-field>
+        <button class="settings-button settings-button--primary" type="button" (click)="createMarket()">Create market</button>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-title>New category</mat-card-title>
+      <mat-card-content>
+        <div class="settings-select-field">
+          <label for="category-market">Market</label>
+          <span class="theme-select-wrapper">
+            <select id="category-market" class="theme-select" [(ngModel)]="category.market_code">
+              <option value="">Select a market</option>
+              <option *ngFor="let market of markets" [value]="market.code">{{ market.label }} ({{ market.code }})</option>
+            </select>
+            <span class="theme-select-arrow" aria-hidden="true">▾</span>
+          </span>
+        </div>
+        <div class="settings-select-field">
+          <label for="category-asset-type">Asset type</label>
+          <span class="theme-select-wrapper">
+            <select id="category-asset-type" class="theme-select" [(ngModel)]="category.asset_type_code">
+              <option value="">Select an asset type</option>
+              <option *ngFor="let type of types" [value]="type.code">{{ type.label }}</option>
+            </select>
+            <span class="theme-select-arrow" aria-hidden="true">▾</span>
+          </span>
+        </div>
+        <mat-form-field><mat-label>Label</mat-label><input matInput [(ngModel)]="category.label" placeholder="China shares"></mat-form-field>
+        <button class="settings-button settings-button--primary" type="button" (click)="createCategory()">Create category</button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <mat-card>
+    <mat-card-title>Catalog</mat-card-title>
+    <mat-card-content>
+      <div class="category" *ngFor="let item of categories">
+        <div><strong>{{ item.label }}</strong> <span>{{ item.code }}</span><small>{{ item.currency_code }} · {{ item.capabilities.join(', ') }}</small></div>
+        <button class="settings-icon-button" type="button" aria-label="Archive category" (click)="archive(item)"><mat-icon>archive</mat-icon></button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</section>

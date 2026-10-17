@@ -4,6 +4,7 @@ import { AnalisysService } from './analisys.service';
 import { of } from 'rxjs';
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { AnalysisSet } from './models/analysisSet';
+import { AssetCatalogService } from '../settings/asset-catalog.service';
 
 import { CommonModule } from '@angular/common';
 
@@ -64,7 +65,8 @@ describe('AnalisysComponent', () => {
           MockScheduledReportsComponent
         ],
         providers: [
-          { provide: AnalisysService, useValue: analysisServiceMock }
+          { provide: AnalisysService, useValue: analysisServiceMock },
+          { provide: AssetCatalogService, useValue: { getCategories: () => of([]) } }
         ]
       }
     })

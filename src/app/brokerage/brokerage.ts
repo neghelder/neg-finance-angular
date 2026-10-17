@@ -19,5 +19,11 @@ export interface Note {
 
 export interface BrokerageCollection {
   name: string,
+  label?: string,
+  market?: string,
+  asset_type?: string,
+  currency_code?: string,
+  capabilities?: string[],
+  archived?: boolean,
   notes: Note[]
 }

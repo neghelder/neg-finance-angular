@@ -15,6 +15,7 @@ export const routes: Routes = [
             { path: 'dashboard', component: DashboardComponent},
             { path: 'portifolio', component: PortifolioComponent, /*resolve: { portifolio: PortifolioResolverService }*/},
             { path: 'brokerage-history', component: BrokerageHistoryComponent},
+            { path: 'settings/asset-categories', loadComponent: () => import('./settings/asset-categories/asset-categories.component').then(m => m.AssetCategoriesComponent)},
             { 
               path: 'analysis', 
               children: [

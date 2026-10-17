@@ -5,7 +5,6 @@ import { GridComponent } from '../../shared/widgets/grid/grid.component';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { CreateNoteComponent } from './create-note/create-note.component';
 import { RenameTickerComponent } from './rename-ticker/rename-ticker.component';
@@ -13,6 +12,8 @@ import { BrokerageCollection, Note } from '../brokerage';
 import { map, Observable, tap } from 'rxjs';
 import { AssetTypeSelectorComponent, AssetTypeOption } from '../../shared/asset-type-selector/asset-type-selector.component';
 import { LoadingBarComponent } from '../../shared/loading-bar/loading-bar.component';
+import { AssetCategory } from '../../settings/asset-catalog';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-brokerage-history',
@@ -21,8 +22,8 @@ import { LoadingBarComponent } from '../../shared/loading-bar/loading-bar.compon
     CommonModule,
     FormsModule,
     GridComponent,
-    MatButtonModule,
     MatIconModule,
+    RouterLink,
     AssetTypeSelectorComponent,
     LoadingBarComponent
   ],
@@ -55,10 +56,23 @@ export class BrokerageHistoryComponent {
   selectedAssetType: string = '';
   selectedTab: string = '';
   selectedNotes: Note[] = [];
-  tickerNames: string[];
+  tickerNames: string[] = [];
+  availableCategories: AssetCategory[] = [];
+  categoryToEnable = '';
+  manageCategoriesOpen = false;
+  includeArchived = false;
+  categoryError = '';
 
   brokerageCollection$: Observable<BrokerageCollection[]>;
   allCollections: BrokerageCollection[] = [];
+
+  get selectedCollection(): BrokerageCollection | undefined {
+    return this.allCollections.find(collection => collection.name === this.selectedAssetType);
+  }
+
+  get categoryToEnableIsArchived(): boolean {
+    return this.availableCategories.some(category => category.code === this.categoryToEnable && category.brokerage_state === 'archived');
+  }
 
   selectedData: any = undefined;
   lastSelectedRownIndex = -1;
@@ -85,16 +99,23 @@ export class BrokerageHistoryComponent {
 
           // Build selector options
           this.assetTypeOptions = collections.map(c => ({
-            label: c.name.replaceAll('_', ' '),
+            label: c.label || c.name.replaceAll('_', ' '),
             value: c.name
           }));
 
           // Auto-select first if nothing selected yet
-          if (!this.selectedAssetType && collections.length > 0) {
+          if ((!this.selectedAssetType || !collections.some(c => c.name === this.selectedAssetType)) && collections.length > 0) {
             this.selectedAssetType = collections[0].name;
             this.selectedTab = collections[0].name.replaceAll('_', ' ');
             this.selectedNotes = collections[0].notes;
             this.tickerNames = this.getTickersWithPositiveAmount(collections[0].notes);
+            this.selectedData = undefined;
+          } else if (!collections.length) {
+            this.selectedAssetType = '';
+            this.selectedTab = '';
+            this.selectedNotes = [];
+            this.tickerNames = [];
+            this.selectedData = undefined;
           } else if (this.selectedAssetType) {
             // Refresh data for current selection (e.g. after CRUD)
             const current = collections.find(c => c.name === this.selectedAssetType);
@@ -171,7 +192,7 @@ export class BrokerageHistoryComponent {
       }
 
       const data = {
-        collection: this.selectedTab?.replace(' ', '_'),
+        collection: this.selectedAssetType,
         id: -1,
         ticker: result.tickerControl,
         date: result.dateControl,
@@ -205,7 +226,7 @@ export class BrokerageHistoryComponent {
         return;
       }
       const data = {
-        collection: this.selectedTab?.replace(' ', '_'),
+        collection: this.selectedAssetType,
         id: this.selectedData.id,
         ticker: result.tickerControl,
         date: result.dateControl,
@@ -237,7 +258,7 @@ export class BrokerageHistoryComponent {
         return;
       }
 
-      const collectionName = this.selectedTab?.replace(' ', '_');
+      const collectionName = this.selectedAssetType;
       this.brokerageService.updateTickerName(result.oldTicker, result.newTicker, collectionName).subscribe(res => {
         console.log('brokerage ticker renamed successfully.');
       });
@@ -247,7 +268,7 @@ export class BrokerageHistoryComponent {
   }
 
   onDelete() {
-    const collectioName = this.selectedTab?.replace(' ', '_');
+    const collectioName = this.selectedAssetType;
     const id = this.selectedData.id;
 
     this.brokerageService.deleteNote(id, collectioName).subscribe(res => {
@@ -266,5 +287,52 @@ export class BrokerageHistoryComponent {
       return;
 
     event.api.ensureIndexVisible(this.lastSelectedRownIndex, "middle");
+  }
+
+  openCategoryPicker(): void {
+    this.manageCategoriesOpen = !this.manageCategoriesOpen;
+    if (!this.manageCategoriesOpen) return;
+    this.categoryError = '';
+    this.brokerageService.availableBrokerageCategories().subscribe({
+      next: categories => {
+        const enabled = new Set(this.allCollections.filter(collection => !collection.archived).map(collection => collection.name));
+        this.availableCategories = categories.filter(category => category.brokerage_state !== 'enabled' && !enabled.has(category.code));
+      },
+      error: error => this.categoryError = error.error?.detail || error.message
+    });
+  }
+
+  enableSelectedCategory(): void {
+    if (!this.categoryToEnable) return;
+    this.brokerageService.enableCategory(this.categoryToEnable).subscribe({
+      next: category => {
+        this.selectedAssetType = category.code;
+        this.selectedTab = category.code.replaceAll('_', ' ');
+        this.selectedNotes = [];
+        this.tickerNames = [];
+        this.categoryToEnable = '';
+        this.availableCategories = [];
+        this.manageCategoriesOpen = false;
+      },
+      error: error => this.categoryError = error.error?.detail || error.message
+    });
+  }
+
+  toggleArchived(): void {
+    this.includeArchived = !this.includeArchived;
+    this.selectedData = undefined;
+    this.brokerageService.loadBrokerageHistoryIncludingArchived(this.includeArchived);
+  }
+
+  archiveSelectedCategory(): void {
+    if (!this.selectedAssetType) return;
+    this.brokerageService.archiveCategory(this.selectedAssetType).subscribe({
+      next: () => {
+        this.selectedAssetType = '';
+        this.selectedTab = '';
+        this.selectedNotes = [];
+      },
+      error: error => this.categoryError = error.error?.detail || error.message
+    });
   }
 }

@@ -6,6 +6,7 @@ import { BehaviorSubject, of } from 'rxjs';
 import { BrokerageCollection } from '../brokerage';
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { CommonModule } from '@angular/common';
 
@@ -65,7 +66,10 @@ describe('BrokerageHistoryComponent', () => {
       brokerageHistory$: brokerageHistorySubject.asObservable(),
       updateNote: jest.fn().mockReturnValue(of({})),
       deleteNote: jest.fn().mockReturnValue(of({})),
-      updateTickerName: jest.fn().mockReturnValue(of({}))
+      updateTickerName: jest.fn().mockReturnValue(of({})),
+      availableBrokerageCategories: jest.fn().mockReturnValue(of([{ code: 'BR_FIAGROS', label: 'FIAGRO Brasil', brokerage_state: 'available' }])),
+      enableCategory: jest.fn().mockReturnValue(of({ code: 'BR_FIAGROS' })),
+      loadBrokerageHistoryIncludingArchived: jest.fn()
     };
 
     dialog = {
@@ -73,7 +77,7 @@ describe('BrokerageHistoryComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [BrokerageHistoryComponent, NoopAnimationsModule],
+      imports: [BrokerageHistoryComponent, NoopAnimationsModule, RouterTestingModule],
     })
     .overrideComponent(BrokerageHistoryComponent, {
       set: {
@@ -92,6 +96,47 @@ describe('BrokerageHistoryComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('keeps category management separate from note actions', fakeAsync(() => {
+    fixture.detectChanges();
+    tick();
+    expect(fixture.nativeElement.querySelector('.category-management')).toBeNull();
+    const notesToolbar = fixture.nativeElement.querySelector('.notes-toolbar');
+    expect(notesToolbar.textContent).toContain('Adicionar nota');
+    expect(notesToolbar.textContent).not.toContain('Arquivar categoria');
+
+    component.openCategoryPicker();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.category-management')).not.toBeNull();
+    expect(component.availableCategories.map(category => category.code)).toEqual(['BR_FIAGROS']);
+    expect(fixture.nativeElement.querySelector('.category-management').textContent).toContain('Arquivar categoria');
+  }));
+
+  it('enables an empty FIAGRO category from the management panel', fakeAsync(() => {
+    component.openCategoryPicker();
+    component.categoryToEnable = 'BR_FIAGROS';
+    component.enableSelectedCategory();
+    tick();
+
+    expect(brokerageService.enableCategory).toHaveBeenCalledWith('BR_FIAGROS');
+    expect(component.selectedAssetType).toBe('BR_FIAGROS');
+    expect(component.manageCategoriesOpen).toBe(false);
+  }));
+
+  it('offers archived categories for reactivation', () => {
+    (brokerageService.availableBrokerageCategories as jest.Mock).mockReturnValueOnce(of([
+      { code: 'BR_FIAGROS', label: 'FIAGRO Brasil', brokerage_state: 'archived' }
+    ]));
+
+    component.openCategoryPicker();
+    component.categoryToEnable = 'BR_FIAGROS';
+    fixture.detectChanges();
+
+    expect(component.availableCategories.map(category => category.code)).toEqual(['BR_FIAGROS']);
+    expect(component.categoryToEnableIsArchived).toBe(true);
+    expect(fixture.nativeElement.querySelector('.category-controls button').textContent).toContain('Reativar');
   });
 
   describe('auto-select on load', () => {

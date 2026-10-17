@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AnalisysService } from '../analisys.service';
 import { CriteriaConfig, FIELD_LABELS, FieldCriteria } from '../models/criteria';
 import { AssetTypeOption, AssetTypeSelectorComponent } from '../../shared/asset-type-selector/asset-type-selector.component';
+import { AssetCatalogService } from '../../settings/asset-catalog.service';
 
 @Component({
   selector: 'app-criteria-editor',
@@ -36,6 +37,7 @@ export class CriteriaEditorComponent implements OnInit {
 
   saving = false;
   saveSuccess = false;
+  private catalog = inject(AssetCatalogService, { optional: true });
 
   constructor(private analysisService: AnalisysService) { }
 
@@ -62,6 +64,17 @@ export class CriteriaEditorComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.catalog?.getCategories('ANALYSIS').subscribe(categories => {
+      if (!categories.length) return;
+      this.assetTypeOptions = Array.from(new Map(categories.map(category => [category.asset_type_code, {
+        label: category.asset_type_code,
+        value: category.asset_type_code
+      }])).values());
+      this.originOptions = Array.from(new Map(categories.map(category => [category.market_code, {
+        label: category.market_code,
+        value: category.market_code
+      }])).values());
+    });
     this.analysisService.getCriteria().subscribe(config => {
       // Create a deep copy to edit safely
       console.log(config);

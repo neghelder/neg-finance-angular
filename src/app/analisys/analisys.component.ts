@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RecommendationsComponent } from './recommendations/recommendations.component';
 import { GridComponent } from '../shared/widgets/grid/grid.component';
 import { ColDef, CellStyle } from 'ag-grid-community';
@@ -13,6 +13,8 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ScheduledReportsComponent } from './scheduled-reports/scheduled-reports.component';
 import { ReportAssetType } from './models/scheduled-report';
+import { AssetCatalogService } from '../settings/asset-catalog.service';
+import { AssetCategory } from '../settings/asset-catalog';
 
 
 @Component({
@@ -42,6 +44,8 @@ export class AnalisysComponent implements OnInit {
     { label: 'USA REITs', value: 'USA_REIT' },
     { label: 'USA ETFs', value: 'USA_ETF' }
   ];
+  private catalog = inject(AssetCatalogService, { optional: true });
+  private analysisCategories: AssetCategory[] = [];
 
   activeCriteria: CriteriaConfig | null = null;
 
@@ -212,6 +216,8 @@ export class AnalisysComponent implements OnInit {
 
   get currentCollection(): string {
     const { origin, type } = this.parseAssetSelection(this.selectedTab);
+    const category = this.analysisCategories.find(item => item.market_code === origin && item.asset_type_code === type);
+    if (category) return category.code;
     if (origin === 'BR' && type === 'REIT') return 'BR_REITS';
     if (origin === 'BR' && type === 'FIAGRO') return 'BR_FIAGROS';
     if (origin === 'BR' && type === 'SHARE') return 'BR_SHARES';
@@ -232,6 +238,13 @@ export class AnalisysComponent implements OnInit {
   constructor(private analysisService: AnalisysService) { }
 
   ngOnInit(): void {
+    this.catalog?.getCategories('ANALYSIS').subscribe(categories => {
+      this.analysisCategories = categories;
+      this.assetTypeOptions = categories.map(category => ({
+        label: category.label,
+        value: `${category.market_code}_${category.asset_type_code}`
+      }));
+    });
     this.analysisService.getCriteria().subscribe(c => {
       this.activeCriteria = c;
     });

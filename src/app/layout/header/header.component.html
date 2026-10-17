@@ -21,7 +21,7 @@
       </button>
 
       <mat-menu #userMenu="matMenu" class="header-user-menu">
-        <button mat-menu-item>
+        <button mat-menu-item (click)="openSettings()">
           <mat-icon>person_outline</mat-icon>
           <span>Profile</span>
         </button>

@@ -1,0 +1,121 @@
+.settings-page {
+  padding: 24px;
+  display: grid;
+  gap: 20px;
+  color: var(--text-main);
+}
+
+.description {
+  color: var(--text-muted);
+  margin-top: -12px;
+}
+
+.forms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+mat-card {
+  background: var(--bg-secondary);
+  color: var(--text-main);
+}
+
+mat-card-content {
+  display: grid;
+  gap: 8px;
+  padding-top: 16px;
+}
+
+.settings-select-field {
+  display: grid;
+  gap: 6px;
+
+  label {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .theme-select-wrapper,
+  .theme-select {
+    width: 100%;
+  }
+
+  .theme-select {
+    min-height: 48px;
+    background: var(--bg-surface);
+  }
+}
+
+.settings-button,
+.settings-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-main);
+  font: 600 13px var(--shell-font-family);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.settings-button {
+  padding: 0 16px;
+}
+
+.settings-button--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+
+  &:hover {
+    background: var(--accent-light);
+    border-color: var(--accent-light);
+  }
+}
+
+.settings-icon-button {
+  width: 38px;
+  padding: 0;
+  color: var(--error);
+
+  &:hover {
+    border-color: var(--error);
+    background: color-mix(in srgb, var(--error) 10%, var(--bg-secondary));
+  }
+
+  mat-icon {
+    color: inherit;
+  }
+}
+
+.category {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  padding: 10px 0;
+
+  small {
+    display: block;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  span {
+    color: var(--text-muted);
+    margin-left: 8px;
+  }
+}
+
+.error {
+  color: var(--error);
+}
