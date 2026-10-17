@@ -1,27 +1,45 @@
-# NegFinance
+# neg-finance-angular
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.0.10.
+Angular web UI for the neg-finance personal finance tracker. It displays
+portfolio positions, manages brokerage notes and asset categories, and provides
+investment screening and report-analysis views backed by `neg-finance-api`.
 
-## Development server
+## Local development
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+Install dependencies with Yarn, matching the committed `yarn.lock` and Docker
+build, then start the development server:
 
-## Code scaffolding
+```sh
+yarn install
+npm start
+```
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+Open `http://localhost:4200`. Start `neg-finance-api` separately on port 8000;
+the frontend services currently call `http://localhost:8000` directly. There is
+no configured development proxy or environment-based API URL selection.
 
-## Build
+## Validation and build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+```sh
+npm run test -- --watch=false --runInBand
+npm run build
+```
 
-## Running unit tests
+Tests use Jest and `jest-preset-angular`. Browser end-to-end testing is not
+configured. The production build writes browser assets to
+`dist/neg-finance/browser`; the Dockerfile serves these files through Nginx.
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+## Project documentation
 
-## Running end-to-end tests
+- [Project conventions](CONSTITUTION.md)
+- [Architecture](docs/ai/ARCHITECTURE.md), [code map](docs/ai/CODEBASE_MAP.md),
+  and [data flow](docs/ai/DATA_FLOW.md)
+- [Domain terminology](docs/ai/DOMAIN_MODEL.md) and
+  [implementation constraints](docs/ai/DECISIONS.md)
+- Feature behavior: [portfolio](docs/spec-portifolio.md),
+  [brokerage](docs/spec-brokerage.md), and [analysis](docs/spec-analisys.md)
+- [Agent entry point](AGENTS.md) and [task guide](docs/ai/AGENT_GUIDE.md)
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+File paths and API routes retain the existing `portifolio` and `analisys`
+spellings. The session check is a stub that currently returns `true`; it does
+not provide authentication or access control.
