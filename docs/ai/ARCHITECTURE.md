@@ -27,6 +27,7 @@ The criteria and asset-category settings pages are lazy components.
 | Area | Responsibility |
 |---|---|
 | Portfolio | Render server positions/metrics, select a collection, build allocation chart series |
+| Income tax | Display historical annual asset projections and issues; copy fields and export filtered CSV without financial calculations |
 | Brokerage | Edit operation records and manage brokerage category lifecycle |
 | Analysis | Select supported market/type analysis, show sets, criteria, watchlists, recommendations, and eligible report panels |
 | Settings | Create catalog markets/categories and archive categories; brokerage enablement remains in brokerage history |

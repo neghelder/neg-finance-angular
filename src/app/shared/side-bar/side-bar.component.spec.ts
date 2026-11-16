@@ -19,4 +19,12 @@ describe('SideBarComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('keeps the income-tax page accessible when the sidebar is collapsed', () => {
+    component.collapsed = true;
+    fixture.detectChanges();
+    const link = fixture.nativeElement.querySelector('a[aria-label="Imposto de renda"]');
+    expect(link.getAttribute('href')).toBe('/income-tax');
+    expect(link.querySelector('mat-icon').textContent).toBe('receipt_long');
+  });
 });

@@ -71,6 +71,17 @@ ticker and amount. The `total_spent` ticker is a special aggregate row separated
 by the recommendations component. Grades, price limits, and allocation values
 are backend analysis outputs, not fixed numeric ranges or exchange price bands.
 
+## Income tax assets
+
+[IncomeTaxAsset](../../src/app/income-tax/income-tax.ts) is a read-only annual
+projection with explicit previous/current dates, calendar/filing years, native
+currency, metadata provenance, classification, description and issues. Each
+position distinguishes nullable unknown values from recorded zero and includes
+the source ledger date/ID. `fiscal_brl` can be unavailable while `native_cost` is
+known; the UI performs no FX conversion. `cnpj_applicable` distinguishes foreign
+issuers from missing domestic metadata. See the [page behavior](../spec-income-tax.md)
+and its linked canonical backend specification.
+
 ## Reports
 
 [Report models](../../src/app/analisys/models/scheduled-report.ts) distinguish

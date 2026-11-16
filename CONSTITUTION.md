@@ -14,12 +14,15 @@ repository root:
 npm start
 npm run build
 npm run test -- --watch=false --runInBand
+npm run test:e2e
 ```
 
 On PowerShell hosts that block `npm.ps1`, use `npm.cmd` for the same commands.
 The build defaults to production in [angular.json](angular.json). The test script
 runs Jest with [jest.config.js](jest.config.js) and [setup-jest.ts](setup-jest.ts);
-there is no Angular CLI Karma test target or browser E2E target configured.
+there is no Angular CLI Karma test target. Playwright runs the income-tax browser
+flow with a synthetic API/database; setup and isolation are described in
+[e2e/README.md](e2e/README.md).
 
 ## Validation
 
@@ -49,7 +52,8 @@ the change also affects executable behavior.
 
 [app.routes.ts](src/app/app.routes.ts) is authoritative for route registration.
 The application shell hosts dashboard, portfolio, brokerage, analysis, criteria,
-and catalog settings. The criteria and settings pages use lazy `loadComponent`
+catalog settings, and [income tax](docs/spec-income-tax.md). The criteria,
+income-tax and settings pages use lazy `loadComponent`
 routes. [CODEBASE_MAP.md](docs/ai/CODEBASE_MAP.md) identifies their source files.
 
 Services currently call `http://localhost:8000` directly. No dev-server API proxy
