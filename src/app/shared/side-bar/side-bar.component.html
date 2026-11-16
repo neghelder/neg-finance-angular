@@ -38,6 +38,10 @@
         <span class="nav-label">Brokerage History</span>
       }
     </a>
+    <a class="nav-item" routerLinkActive="nav-item--active" routerLink="/income-tax" aria-label="Imposto de renda">
+      <mat-icon class="nav-icon">receipt_long</mat-icon>
+      @if (!collapsed) { <span class="nav-label">Imposto de renda</span> }
+    </a>
     <a class="nav-item" routerLinkActive="nav-item--active"
        routerLink="/analysis">
       <mat-icon class="nav-icon">query_stats</mat-icon>

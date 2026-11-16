@@ -1,0 +1,51 @@
+:host { display: block; }
+.income-tax-page { padding: 24px; max-width: 1500px; margin: auto; color: var(--text-main); }
+// Material's default button palette does not follow the app's runtime theme.
+// Set the supported MDC tokens on the button so labels, icons and interaction
+// states follow the same inherited theme as the page.
+.income-tax-page button.mat-mdc-button-base {
+  --mdc-text-button-label-text-color: var(--text-main);
+  --mdc-text-button-disabled-label-text-color: var(--text-muted);
+  --mat-text-button-state-layer-color: var(--text-main);
+  --mat-text-button-ripple-color: var(--accent-muted);
+  --mat-text-button-hover-state-layer-opacity: .08;
+  --mat-text-button-focus-state-layer-opacity: .12;
+  --mat-text-button-pressed-state-layer-opacity: .12;
+  --mdc-outlined-button-label-text-color: var(--text-main);
+  --mdc-outlined-button-outline-color: var(--text-muted);
+  --mdc-outlined-button-disabled-label-text-color: var(--text-muted);
+  --mdc-outlined-button-disabled-outline-color: var(--border-color);
+  --mat-outlined-button-state-layer-color: var(--text-main);
+  --mat-outlined-button-ripple-color: var(--accent-muted);
+  --mat-outlined-button-hover-state-layer-opacity: .08;
+  --mat-outlined-button-focus-state-layer-opacity: .12;
+  --mat-outlined-button-pressed-state-layer-opacity: .12;
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+}
+.page-heading, .detail-heading, .description-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+h1 { margin: 4px 0 8px; font-size: 1.8rem; } h2, h3 { margin: 0; } p { line-height: 1.6; }
+.eyebrow { color: var(--accent); font-size: .8rem; margin: 0; text-transform: uppercase; letter-spacing: .08em; }
+.page-heading p:not(.eyebrow), .detail-heading p, .report-dates > p:not(.notice) { color: var(--text-muted); }
+.notice { background: var(--bg-surface); padding: 12px 16px; border-left: 3px solid var(--accent); border-radius: 4px; }
+.filters { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1.4fr; gap: 16px; margin: 24px 0; }
+label { display: flex; flex-direction: column; gap: 8px; font-size: .85rem; }
+select, input { width: 100%; box-sizing: border-box; padding: 10px; font: inherit; color: var(--text-main); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; }
+.report-dates { display: flex; flex-direction: column; gap: 6px; } .report-dates p { margin: 0; }
+.assets-grid { height: 340px; margin-bottom: 24px; }
+.asset-detail { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 24px; }
+.metadata { display: flex; flex-wrap: wrap; gap: 28px; margin: 16px 0; }
+.metadata > div { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.metadata span { color: var(--text-muted); font-size: .8rem; } .metadata strong { font-size: .9rem; overflow-wrap: anywhere; }
+.position-scroll { overflow-x: auto; } .positions { width: 100%; border-collapse: collapse; margin: 8px 0 24px; font-size: .9rem; }
+caption { text-align: left; font-weight: 600; padding: 12px 0; }
+th, td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border-color); } th { font-weight: 500; } thead th { background: var(--bg-surface); }
+.positions td { white-space: nowrap; } .source { color: var(--text-muted); font-size: .8rem; }
+.description { user-select: text; white-space: pre-wrap; overflow-wrap: anywhere; padding: 16px; background: var(--bg-surface); border-radius: 6px; }
+.issues { border-top: 1px solid var(--border-color); padding-top: 16px; } .issues li { margin: 8px 0; line-height: 1.5; }
+.error { color: var(--error); } .feedback { padding: 10px; background: var(--bg-active); } .empty { padding: 28px; text-align: center; color: var(--text-muted); }
+@media (max-width: 850px) { .filters { grid-template-columns: 1fr 1fr; } .income-tax-page, .asset-detail { padding: 16px; } }
+@media (max-width: 480px) { .filters { grid-template-columns: 1fr; } }

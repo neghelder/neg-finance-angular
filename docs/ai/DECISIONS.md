@@ -26,7 +26,7 @@ actual context, chosen option, rationale, and affected contracts.
 - Analysis selectors use the catalog, but the component dispatches only known asset types. Registering another market/category does not provide new data ingestion or pricing.
 - The note dialog still shows `R$` price/fee prefixes even though brokerage metadata can include other currencies.
 - The note dialog offers split/reverse-split operation codes, but the API ledger has no dedicated corporate-action accounting for them. The labels alone do not establish backend support.
-- Jest tests cover components/services; no browser E2E runner is configured. Test counts and coverage are validation results, not permanent architecture facts.
+- Jest tests cover components/services. Playwright covers the income-tax flow using a synthetic API/database; see [browser setup](../../e2e/README.md). Test counts and coverage are validation results, not permanent architecture facts.
 
 These are observations, not approved plans or assigned priorities. Adding auth,
 configurable hosting, caching, another state library, or browser E2E tooling needs

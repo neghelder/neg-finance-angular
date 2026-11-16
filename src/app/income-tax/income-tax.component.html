@@ -1,0 +1,53 @@
+<section class="income-tax-page">
+  <header class="page-heading">
+    <div><p class="eyebrow">Declaração anual</p><h1>Imposto de renda</h1><p>Bens e Direitos · posições e custos registrados</p></div>
+    <button mat-stroked-button (click)="exportCsv()" [disabled]="loading || !!error || !filteredAssets.length"><mat-icon>download</mat-icon> Exportar CSV</button>
+  </header>
+  <p class="notice">Os números refletem o histórico cadastrado e não comprovam sua completude. Confira os dados antes de preencher a declaração. Posições encerradas também aparecem no relatório.</p>
+  <div class="filters">
+    <label for="income-tax-year">Ano-calendário
+      <select id="income-tax-year" class="theme-select" [(ngModel)]="year" (ngModelChange)="reload()">
+        <option [ngValue]="2025">2025 · exercício 2026</option><option [ngValue]="2026">2026 · exercício 2027</option>
+      </select>
+    </label>
+    <label for="income-tax-market">Mercado<select id="income-tax-market" class="theme-select" [(ngModel)]="market" (ngModelChange)="applyFilters()"><option value="">Todos</option><option *ngFor="let item of markets" [value]="item">{{ item }}</option></select></label>
+    <label for="income-tax-type">Classe<select id="income-tax-type" class="theme-select" [(ngModel)]="assetType" (ngModelChange)="applyFilters()"><option value="">Todas</option><option *ngFor="let item of assetTypes" [value]="item">{{ item }}</option></select></label>
+    <label for="income-tax-search">Buscar ativo<input id="income-tax-search" type="search" placeholder="Ticker ou nome" [(ngModel)]="search" (ngModelChange)="applyFilters()"></label>
+  </div>
+  <app-loading-bar [loading]="loading"></app-loading-bar>
+  <p *ngIf="loading" role="status">Carregando relatório…</p>
+  <div *ngIf="error" class="error" role="alert">{{ error }} <button mat-button (click)="reload()">Tentar novamente</button></div>
+  <p *ngIf="feedback" role="status" class="feedback">{{ feedback }}</p>
+  <ng-container *ngIf="!loading && !error">
+    <div *ngIf="report as summary" class="report-dates">
+      <strong>Ano-calendário {{ summary.calendar_year }} · exercício {{ summary.filing_year }}</strong>
+      <span>{{ summary.previous_date }} → {{ summary.current_date }}</span>
+      <p *ngIf="summary.is_preview" class="notice" data-testid="preview-notice">Prévia até {{ summary.current_date }}. Os dados ainda não representam o encerramento do ano.</p>
+      <p>{{ summary.classification_reference }}</p>
+    </div>
+    <p *ngIf="!assets.length" class="empty">Nenhum ativo com posição ou movimentação registrada para este ano.</p>
+    <p *ngIf="assets.length && !filteredAssets.length" class="empty">Nenhum ativo corresponde aos filtros.</p>
+    <ng-container *ngIf="filteredAssets.length">
+      <p>{{ filteredAssets.length }} ativo(s) · selecione uma linha para conferir e copiar os campos.</p>
+      <div class="assets-grid" data-testid="income-tax-grid"><app-widget-grid [data]="filteredAssets" [colDefs]="columns" (rowSelected)="select($event)"></app-widget-grid></div>
+      <article *ngIf="selected as asset" class="asset-detail" data-testid="asset-detail">
+        <header class="detail-heading"><div><h2>{{ asset.ticker }}</h2><p>{{ asset.name ?? 'Nome indisponível' }} · {{ asset.market_code }} · {{ asset.asset_type_code }} · {{ asset.currency_code }}</p></div><button mat-stroked-button (click)="copyRow(asset)">Copiar linha</button></header>
+        <div class="metadata">
+          <div><span>CNPJ</span><strong>{{ cnpj(asset) }}</strong><button mat-button *ngIf="asset.cnpj" (click)="copy(asset.cnpj)" aria-label="Copiar CNPJ">Copiar</button></div>
+          <div><span>Grupo / código</span><strong>{{ classification(asset) }}</strong><button mat-button *ngIf="asset.group && asset.code" (click)="copy(asset.group + '/' + asset.code)" aria-label="Copiar grupo e código">Copiar</button></div>
+          <div><span>Origem do nome</span><strong>{{ metadataLabel(asset.metadata_source) }}</strong></div>
+        </div>
+        <div class="position-scroll"><table class="positions"><caption>Posições nas datas de referência</caption><thead><tr><th scope="col">Campo</th><th scope="col">{{ asset.previous_date }}</th><th scope="col">{{ asset.current_date }}</th></tr></thead><tbody>
+          <tr><th scope="row">Quantidade</th><td>{{ number(asset.previous.quantity, 20) }}<button mat-button *ngIf="asset.previous.quantity !== null" (click)="copy(number(asset.previous.quantity, 20))" aria-label="Copiar quantidade anterior">Copiar</button></td><td>{{ number(asset.current.quantity, 20) }}<button mat-button *ngIf="asset.current.quantity !== null" (click)="copy(number(asset.current.quantity, 20))" aria-label="Copiar quantidade atual">Copiar</button></td></tr>
+          <tr><th scope="row">Preço médio ({{ asset.currency_code }})</th><td>{{ number(asset.previous.average_price) }}<button mat-button *ngIf="asset.previous.average_price !== null" (click)="copy(number(asset.previous.average_price))" aria-label="Copiar preço médio anterior">Copiar</button></td><td>{{ number(asset.current.average_price) }}<button mat-button *ngIf="asset.current.average_price !== null" (click)="copy(number(asset.current.average_price))" aria-label="Copiar preço médio atual">Copiar</button></td></tr>
+          <tr><th scope="row">Custo registrado ({{ asset.currency_code }})</th><td>{{ number(asset.previous.native_cost, 2) }}<button mat-button *ngIf="asset.previous.native_cost !== null" (click)="copy(number(asset.previous.native_cost, 2))" aria-label="Copiar custo anterior">Copiar</button></td><td>{{ number(asset.current.native_cost, 2) }}<button mat-button *ngIf="asset.current.native_cost !== null" (click)="copy(number(asset.current.native_cost, 2))" aria-label="Copiar custo atual">Copiar</button></td></tr>
+          <tr><th scope="row">Situação fiscal em reais (BRL)</th><td>{{ number(asset.previous.fiscal_brl, 2) }}<button mat-button *ngIf="asset.previous.fiscal_brl !== null" (click)="copy(number(asset.previous.fiscal_brl, 2))" aria-label="Copiar situação anterior">Copiar</button></td><td>{{ number(asset.current.fiscal_brl, 2) }}<button mat-button *ngIf="asset.current.fiscal_brl !== null" (click)="copy(number(asset.current.fiscal_brl, 2))" aria-label="Copiar situação atual">Copiar</button></td></tr>
+          <tr class="source"><th scope="row">Registro de origem (data · ID)</th><td>{{ asset.previous.source_date ?? 'Indisponível' }} · {{ asset.previous.source_id ?? 'Indisponível' }}</td><td>{{ asset.current.source_date ?? 'Indisponível' }} · {{ asset.current.source_id ?? 'Indisponível' }}</td></tr>
+        </tbody></table></div>
+        <div class="description-heading"><h3>Discriminação para Bens e Direitos</h3><button mat-stroked-button (click)="copy(asset.description)">Copiar discriminação</button></div>
+        <p class="description" data-testid="asset-description">{{ asset.description }}</p>
+        <section *ngIf="asset.issues.length" class="issues"><h3>Observações e pendências</h3><ul><li *ngFor="let issue of asset.issues">{{ issue.reference_date ? issue.reference_date + ': ' : '' }}{{ issue.message }}</li></ul></section>
+      </article>
+    </ng-container>
+  </ng-container>
+</section>
